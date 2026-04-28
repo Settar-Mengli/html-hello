@@ -1,1075 +1,364 @@
-# AgentHub — Admin Panel Specification
+# AgentHub Admin Panel — Specification
+
+> Version 1.0 · Single source of truth for the prototype build.
+> An AI coding agent or human developer must be able to read this document and build the prototype without asking questions. If something is ambiguous in this spec, the spec is wrong.
 
 ---
 
 ## 1. Product Description
 
-**AgentHub** is a web-based administration panel for an AI Agent Rental Platform. The platform enables businesses and individuals to rent specialized AI agents (e.g., data analysts, writers, customer support bots, code reviewers) on a contract basis. Administrators use AgentHub to oversee every aspect of the platform: who the users are, which agents are listed, what skills those agents offer, which rental contracts are active, and what errors the system has logged.
+**AgentHub** is a SaaS platform where companies rent AI agents — pre-configured intelligent assistants equipped with **skills** (capabilities such as web browsing, document reading, calendar management, and email drafting) and deployed for specific business tasks.
 
-**Target users:** Platform administrators only. There is no public-facing user portal in this panel.
+This document specifies the **internal admin panel** used by the AgentHub operations team. The admin user is a non-engineer staff member responsible for monitoring revenue, managing user accounts, overseeing active agents, curating the skill catalog, reviewing rental contracts, and triaging runtime errors.
 
-**Core responsibilities of the admin:**
-- Monitor platform health via the Dashboard
-- Create, edit, suspend, or delete user accounts
-- Approve, edit, or deactivate AI agent listings
-- Define and manage the skill taxonomy available to agents
-- View and terminate rental contracts
-- Review, resolve, and export system error logs
+The deliverable is a **fully designed HTML prototype** with hardcoded data — no backend, no API calls. Its purpose is to serve as a visual contract that the founding team can review and validate before backend integration begins.
 
 ---
 
 ## 2. Tech Stack & Constraints
 
-| Concern | Decision |
-|---|---|
-| Markup | HTML5 only |
-| Styling | Tailwind CSS v4 via CDN — `<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>` |
-| Scripting | Vanilla JavaScript (ES6+) — no jQuery, no frameworks |
-| Data | All data hardcoded as JavaScript arrays/objects inside `<script>` tags |
-| Backend | None — zero network requests |
-| Build tool | None — open `index.html` directly in a browser or via `python3 server.py` |
-| File structure | Single `index.html` is acceptable; separate `style.css` and `app.js` are optional |
-| Browser target | Modern Chromium-based browsers (Chrome 110+, Edge 110+) |
-| Minimum viewport | 1280px wide |
+### Allowed
+- **HTML5** with semantic tags (`<header>`, `<nav>`, `<main>`, `<section>`, `<article>`, `<aside>`, `<table>`).
+- **Tailwind CSS via CDN** loaded from `https://cdn.tailwindcss.com` — single `<script>` tag in `<head>`.
+- **Vanilla JavaScript** in a single `<script>` block at the end of `<body>`.
+- **Google Fonts** loaded via `<link>` tags.
 
-**Prohibited:**
-- Any JavaScript framework or library (React, Vue, Alpine, htmx, jQuery, Chart.js, etc.)
-- Any CSS framework other than Tailwind via the CDN above
-- Any `fetch()`, `XMLHttpRequest`, or WebSocket calls
-- Any `localStorage`, `sessionStorage`, or `IndexedDB` usage
+### Forbidden
+- No external CSS files (no `styles.css`, no separate stylesheets).
+- No inline `style` attributes anywhere in the markup.
+- No frameworks (React, Vue, Svelte, Alpine, etc.).
+- No jQuery or other JavaScript libraries.
+- No build tools (no npm, no bundlers, no preprocessors).
+- No backend, no `fetch` calls, no API integration.
+- No `localStorage`, `sessionStorage`, or any browser persistence — state lives in JavaScript variables only.
+
+### File Structure
+- A single `index.html` at the root of the repository.
+- All six panel sections live in this one file. Section switching is JS-controlled — sections are `<section>` elements whose visibility is toggled via the `hidden` class. No real navigation, no separate HTML files.
+- Rationale: this keeps dark-mode state and hardcoded data trivially consistent across "navigation" without persistence layers.
+
+### Tailwind Dark Mode Configuration
+The brief requires a manual toggle (not OS-preference-based). Tailwind must be configured for class-based dark mode. Place this **before** the CDN script tag:
+
+```html
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['"IBM Plex Sans"', 'sans-serif'],
+          display: ['"Hanken Grotesk"', 'sans-serif'],
+          mono: ['"IBM Plex Mono"', 'monospace']
+        }
+      }
+    }
+  };
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+```
+
+The toggle works by adding/removing the `dark` class on the `<html>` element.
 
 ---
 
-## 3. Global Layout
+## 3. Visual Design System
 
-The admin panel is a Single-Page Application (SPA). Navigation between sections never reloads the page — JavaScript shows and hides section containers.
+### 3.1 Typography
 
-### 3.1 Shell Structure
+Two display/body Google Fonts plus a monospaced font, loaded together via a single `<link>`:
 
-```
-┌──────────────────────────────────────────────────────┐
-│  SIDEBAR (fixed, 240px wide, full viewport height)   │
-│  ┌────────────────────────────────────────────────┐  │
-│  │ Logo: "AgentHub" wordmark + robot icon         │  │
-│  ├────────────────────────────────────────────────┤  │
-│  │ Nav Links (vertical list):                     │  │
-│  │   📊 Dashboard                                 │  │
-│  │   👥 User Management                           │  │
-│  │   🤖 Agent Management                          │  │
-│  │   🧠 Skills                                    │  │
-│  │   📄 Agent Contracts                           │  │
-│  │   🔴 Error Log                                 │  │
-│  └────────────────────────────────────────────────┘  │
-├──────────────────────────────────────────────────────┤
-│  TOP BAR (fixed, full width minus sidebar)           │
-│  Left: Page title (updates on nav)                   │
-│  Right: Admin avatar circle + "Admin" label          │
-├──────────────────────────────────────────────────────┤
-│  MAIN CONTENT AREA (scrollable, padding 24px)        │
-│  [Active section renders here]                       │
-└──────────────────────────────────────────────────────┘
-```
+- **Headings, section titles, metric values:** `Hanken Grotesk` — weights 600 and 700.
+- **Body, table cells, labels, descriptions:** `IBM Plex Sans` — weights 400 and 500.
+- **Monospaced (system prompts, error traces, timestamps):** `IBM Plex Mono` — weight 400.
 
-### 3.2 Sidebar Behavior
-- Width: 240px, fixed position, full viewport height, dark background (`bg-gray-900`), white text.
-- Logo area at top: icon + "AgentHub" text, ~64px tall.
-- Nav items: full-width clickable areas, `py-3 px-4`, icon + label.
-- **Active state:** Background `bg-indigo-600`, white text, left border `border-l-4 border-white`.
-- **Inactive hover state:** Background `bg-gray-700`.
-- On click: JS removes active class from all nav items, adds it to clicked item, hides all sections, shows the target section.
+Apply `font-sans` (mapped to IBM Plex Sans) globally on `<body>`. Use `font-display` on `h1`, `h2`, `h3`, and on metric card values. Use `font-mono` on system-prompt textareas, error trace blocks, and timestamps in the Error Log.
 
-### 3.3 Top Bar
-- Height: 64px, fixed, `bg-white`, bottom border `border-b border-gray-200`, shadow.
-- Left: `<h1>` element with the current section name (updated by JS on each nav click).
-- Right: Circular avatar placeholder (`bg-indigo-500`, white initials "SA") + text "Super Admin".
+**Forbidden fonts:** `Inter`, `Roboto`, `Arial`, generic system stack. The chosen pair is intentional — do not substitute.
 
-### 3.4 Content Area
-- Positioned to the right of the sidebar, below the top bar.
-- Padding: `p-6` all sides.
-- Background: `bg-gray-50`.
-- Each of the 6 sections is a `<div>` with `id="section-{name}"`. All are `display: none` by default; the active one is `display: block`.
-- Dashboard is shown by default on page load.
+### 3.2 Color Tokens
+
+All colors come from Tailwind's default palette. Use these exact tokens:
+
+| Token | Light mode | Dark mode |
+|---|---|---|
+| Page background | `bg-slate-50` | `dark:bg-slate-950` |
+| Surface (cards, sidebar) | `bg-white` | `dark:bg-slate-900` |
+| Surface elevated (modal panel) | `bg-white` | `dark:bg-slate-900` |
+| Border | `border-slate-200` | `dark:border-slate-800` |
+| Heading text | `text-slate-900` | `dark:text-slate-50` |
+| Body text | `text-slate-700` | `dark:text-slate-300` |
+| Muted text | `text-slate-500` | `dark:text-slate-400` |
+| Accent (primary) | `bg-indigo-600 text-white` | `dark:bg-indigo-500` |
+| Accent hover | `hover:bg-indigo-700` | `dark:hover:bg-indigo-400` |
+| Accent text | `text-indigo-600` | `dark:text-indigo-400` |
+
+**Status / semantic palette** (used in badges, error types, and metric icons):
+
+| Status | Background tint | Text |
+|---|---|---|
+| Active / Success | `bg-emerald-100 dark:bg-emerald-900/40` | `text-emerald-700 dark:text-emerald-300` |
+| Inactive / Neutral | `bg-slate-100 dark:bg-slate-800` | `text-slate-600 dark:text-slate-300` |
+| Warning | `bg-amber-100 dark:bg-amber-900/40` | `text-amber-700 dark:text-amber-300` |
+| Failing / Critical | `bg-rose-100 dark:bg-rose-900/40` | `text-rose-700 dark:text-rose-300` |
+| Info | `bg-sky-100 dark:bg-sky-900/40` | `text-sky-700 dark:text-sky-300` |
+
+### 3.3 Spacing & Radius
+
+- Tailwind's default 4 px scale.
+- Cards and the modal panel use `rounded-xl` (12 px).
+- Buttons, inputs, and rectangular badges use `rounded-md` (6 px).
+- Status pills use `rounded-full`.
+- Section content padding: `px-8 py-6` on desktop, `px-4 py-4` on tablet.
+
+### 3.4 Elevation & Borders
+
+- Light mode: cards use `shadow-sm` plus `border border-slate-200`.
+- Dark mode: cards drop the shadow and rely on `dark:border-slate-800` only.
+- The modal uses `shadow-2xl` in light mode and `dark:border-slate-700` in dark mode.
+
+### 3.5 Iconography
+
+Use **inline SVG icons only** — no icon font, no external icon library.
+
+- Default size inside table rows and dropdown menus: 16×16 (`w-4 h-4`).
+- Default size inside metric cards and sidebar links: 20×20 (`w-5 h-5`).
+- Stroke: `currentColor`, stroke-width `1.75`, stroke-linecap `round`, stroke-linejoin `round`.
+- The `⋮` action-dropdown trigger is rendered as inline SVG (three vertically stacked dots) for crisp rendering at any zoom level.
+
+Suggested icons per metric card:
+- Total revenue → dollar-sign
+- Discount losses → trending-down arrow
+- Active agents → bot / cpu-chip
+- Failing agents → alert-triangle
 
 ---
 
-## 4. Component Inventory
+## 4. Layout Structure
 
-These components recur across sections. Each implementation must be consistent in appearance.
+The page renders three top-level regions:
 
-### 4.1 KPI Card
-**Used in:** Dashboard
+1. **Sidebar** — fixed-width persistent navigation, left-aligned, full viewport height.
+2. **Top bar** — sticky header inside the main column, contains the section title and the dark-mode toggle.
+3. **Section content** — the active section; all others have the `hidden` class.
 
-**Structure:**
-```
-┌─────────────────────────────┐
-│  [Icon]        [Trend Badge]│
-│  Label                      │
-│  Value (large, bold)        │
-└─────────────────────────────┘
-```
-- Background: `bg-white`, rounded, shadow, padding `p-5`.
-- Icon: 40×40px colored circle with an SVG icon inside (e.g., user icon, robot icon, file icon, dollar icon).
-- Trend Badge: small pill, `bg-green-100 text-green-700` for positive (↑), `bg-red-100 text-red-700` for negative (↓). Displays percentage change, e.g. "+8%" or "-3%".
-- Label: small gray text (`text-sm text-gray-500`).
-- Value: large bold number (`text-3xl font-bold text-gray-800`).
+### 4.1 Sidebar
 
-### 4.2 Data Table
-**Used in:** User Management, Agent Management, Agent Contracts, Error Log
+- Width: `w-64` on desktop (≥ 768 px), `w-20` icon-only on tablet (< 768 px).
+- Header: AgentHub wordmark — `<h1 class="font-display font-bold text-xl">AgentHub</h1>` — plus a small "Admin" tag below it in muted text.
+- Navigation: a `<nav>` containing six `<a>` links (one per section). Each link has an inline SVG icon and a text label. The `href` is `#section-{name}`; the click handler calls `showSection(name)` and prevents default.
+- Active link styling: `bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400` plus a 2 px left accent bar (`border-l-2 border-indigo-600`).
+- Footer: a small block with a circular avatar placeholder, the admin name "Settar Mengli", and the email "admin@agenthub.io" in muted text.
 
-**Structure:**
-- Wrapper: `overflow-x-auto`, `bg-white`, rounded, shadow.
-- `<table class="w-full text-sm">` with `border-collapse`.
-- `<thead>`: `bg-gray-50`, `text-xs uppercase text-gray-500`, `font-semibold`, bottom border.
-- `<tbody>`: alternating row shading — odd rows `bg-white`, even rows `bg-gray-50`.
-- Hover: `hover:bg-indigo-50` on each `<tr>`.
-- Each `<td>`: `px-4 py-3`, `text-gray-700`.
-- Column headers `<th>`: `px-4 py-3`, `text-left`.
+### 4.2 Top Bar
 
-### 4.3 Search Input
-**Used in:** All tabular sections and Skills
+- Sticky (`sticky top-0 z-10`), full width of the main column, height `h-16`.
+- Left: section title rendered dynamically — same text as the active sidebar link, in `font-display text-lg font-semibold`.
+- Right: dark-mode toggle button. The button shows a **moon** icon when in light mode (suggesting "click to go dark") and a **sun** icon when in dark mode.
 
-**Structure:**
-- Wrapper div: `relative`.
-- Magnifier SVG icon: positioned absolutely, left side, vertically centered, `text-gray-400`.
-- `<input type="text">`: `pl-10 pr-4 py-2`, `border border-gray-300`, `rounded-lg`, `text-sm`, `w-64`, `focus:outline-none focus:ring-2 focus:ring-indigo-500`.
-- Placeholder text: "Search…" (contextual label optional).
-- `oninput` handler: calls the section's filter function on every keystroke.
+### 4.3 Main Content Area
 
-### 4.4 Dropdown Filter
-**Used in:** All tabular sections
-
-**Structure:**
-- `<select>` element: `border border-gray-300`, `rounded-lg`, `px-3 py-2`, `text-sm`, `bg-white`, `focus:outline-none focus:ring-2 focus:ring-indigo-500`.
-- First `<option>`: "All [FieldName]" with value `""`.
-- Remaining options: one per distinct filter value.
-- `onchange` handler: calls the section's filter function.
-
-### 4.5 Pagination Bar
-**Used in:** User Management, Agent Management, Agent Contracts, Error Log
-
-**Structure:**
-```
-[Previous]  [1]  [2]  [3]  [Next]       Showing 1–10 of 20
-```
-- Wrapper: `flex items-center justify-between mt-4`.
-- Prev/Next: `<button>` styled as outlined pill, disabled when at first/last page (`opacity-50 cursor-not-allowed`).
-- Page number pills: current page has `bg-indigo-600 text-white`, others `bg-white text-gray-600 border`.
-- "Showing X–Y of Z": right-aligned gray text.
-- Behavior: clicking a page number or Next/Prev re-renders the visible table rows from the in-memory filtered data array.
-
-### 4.6 Modal
-**Used in:** All sections (view, edit, confirm, add)
-
-**Structure:**
-```
-[Backdrop overlay — semi-transparent, full viewport]
-  ┌──────────────────────────────────────────┐
-  │ Title                            [X]     │
-  ├──────────────────────────────────────────┤
-  │ Body content (form fields or read-only   │
-  │ details)                                 │
-  ├──────────────────────────────────────────┤
-  │                      [Cancel]  [Action]  │
-  └──────────────────────────────────────────┘
-```
-- Backdrop: `fixed inset-0 bg-black bg-opacity-50 z-40`, clicking it closes the modal.
-- Modal box: `fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2`, `bg-white`, `rounded-xl`, `shadow-2xl`, `z-50`, `w-full max-w-lg`, `max-h-[90vh] overflow-y-auto`.
-- Header: `px-6 py-4`, `border-b`, title as `font-semibold text-lg text-gray-800`, X button top-right.
-- Body: `px-6 py-4`.
-- Footer: `px-6 py-4`, `border-t`, `flex justify-end gap-3`.
-- Cancel button: `bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg`.
-- Action button: `bg-indigo-600 text-white px-4 py-2 rounded-lg` (or `bg-red-600` for destructive actions).
-- Close triggers: X button, Cancel button, backdrop click. All call a `closeModal(id)` function.
-
-### 4.7 Status Badge
-**Used in:** User Management, Agent Management, Agent Contracts
-
-| Status | Classes |
-|---|---|
-| Active | `bg-green-100 text-green-700` |
-| Inactive | `bg-gray-100 text-gray-600` |
-| Suspended | `bg-red-100 text-red-700` |
-| Pending | `bg-yellow-100 text-yellow-700` |
-| Under Review | `bg-blue-100 text-blue-700` |
-| Completed | `bg-indigo-100 text-indigo-700` |
-| Cancelled | `bg-gray-100 text-gray-500` |
-
-Common classes: `inline-block px-2.5 py-0.5 rounded-full text-xs font-medium`.
-
-### 4.8 Action Button Group
-**Used in:** All tabular sections, Skill cards
-
-A horizontal group of small icon buttons at the end of each row or card.
-
-| Button | Color | Icon | Action |
-|---|---|---|---|
-| View | `bg-blue-50 text-blue-600 hover:bg-blue-100` | Eye icon | Open read-only modal |
-| Edit | `bg-indigo-50 text-indigo-600 hover:bg-indigo-100` | Pencil icon | Open edit modal |
-| Suspend/Activate | `bg-yellow-50 text-yellow-600 hover:bg-yellow-100` | Lock/Unlock icon | Toggle status, show toast |
-| Deactivate/Activate | `bg-orange-50 text-orange-600 hover:bg-orange-100` | Power icon | Toggle status, show toast |
-| Terminate | `bg-red-50 text-red-600 hover:bg-red-100` | X-circle icon | Confirmation modal → cancel contract |
-| Delete | `bg-red-50 text-red-600 hover:bg-red-100` | Trash icon | Confirmation modal → remove row |
-| Mark Resolved | `bg-green-50 text-green-600 hover:bg-green-100` | Check icon | Toggle error status |
-
-Each button: `p-1.5 rounded-md`, tooltip via `title` attribute.
-
-### 4.9 Toast Notification
-**Used in:** All sections (triggered by state-changing actions)
-
-**Structure:**
-- Fixed position: `fixed bottom-6 right-6 z-50`.
-- `bg-gray-800 text-white px-5 py-3 rounded-lg shadow-lg text-sm`.
-- Optional left-side colored dot: green for success, red for error/destructive.
-- Appears with a slide-up CSS transition (`translate-y-full → translate-y-0`).
-- Auto-dismisses after 2000ms; uses `setTimeout` to remove from DOM.
-- Only one toast is shown at a time — previous toast is removed before showing a new one.
-
-### 4.10 Severity Badge
-**Used in:** Error Log
-
-| Severity | Classes |
-|---|---|
-| Critical | `bg-red-100 text-red-700 border border-red-200` |
-| Warning | `bg-orange-100 text-orange-700 border border-orange-200` |
-| Info | `bg-blue-100 text-blue-700 border border-blue-200` |
-
-Common classes: `inline-block px-2.5 py-0.5 rounded-full text-xs font-medium`.
-
-### 4.11 Section Header Bar
-**Used in:** Every section (top of content area)
-
-**Structure:**
-```
-[Section Title (h2)]                [Primary Action Button (optional)]
-[Subtitle / breadcrumb text]
-```
-- Title: `text-2xl font-bold text-gray-800`.
-- Subtitle: `text-sm text-gray-500 mt-1`.
-- Primary action button (when present): `bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700`, positioned right-aligned via `flex justify-between items-start`.
+- Each section is a `<section id="section-{name}">` with consistent inner padding (`px-8 py-6`).
+- Only one section visible at a time; others have the `hidden` class.
+- Section opening element: `<h2 class="font-display text-2xl font-semibold mb-1">{Section title}</h2>` plus a one-line description in `text-sm text-slate-500 mb-6`.
 
 ---
 
 ## 5. Section Specifications
 
+Each section below lists at least three concrete, verifiable specs covering layout, components, and behavior.
+
 ### 5.1 Dashboard
 
-**Purpose:** At-a-glance platform health snapshot for the administrator.
+**5.1.1** Four metric cards in a responsive grid: `grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4`. Each card is `rounded-xl border bg-white p-5 dark:bg-slate-900 dark:border-slate-800 shadow-sm dark:shadow-none` and stacks vertically: a 36×36 rounded icon container (`w-9 h-9 rounded-lg flex items-center justify-center`) tinted with the metric's accent background, a label in muted text (`text-sm text-slate-500`), and the hardcoded value in `font-display text-3xl font-bold text-slate-900 dark:text-slate-50`.
 
-**Layout (top to bottom):**
-1. Section Header Bar (title: "Dashboard", subtitle: "Welcome back, Super Admin")
-2. KPI Cards Row (4 cards, equal width columns)
-3. Two-column row: Bar Chart (left, 60%) + Recent Activity Feed (right, 40%)
-4. Full-width Top Agents Table
+**5.1.2** Each card carries a distinct accent color applied to the icon container only — Total revenue uses emerald, Discount losses uses rose, Active agents uses indigo, Failing agents uses amber. The card surface itself stays neutral. A small bottom delta indicator (e.g., `+12.4% vs last month`) renders in the matching semantic color.
 
----
+**5.1.3** Below the cards, a full-width placeholder block represents the weekly activity chart: `border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl h-72 flex flex-col items-center justify-center`, with a centered label "Weekly activity chart" and a smaller subtitle "Wired to backend in Phase 2" in muted text.
 
-#### 5.1.1 KPI Cards
-
-Four cards in a `grid grid-cols-4 gap-4` container.
-
-| Card | Icon | Value | Trend |
-|---|---|---|---|
-| Total Users | Users icon (indigo) | 1,284 | +8% |
-| Active Agents | Robot/CPU icon (emerald) | 347 | +12% |
-| Active Contracts | Document icon (blue) | 93 | -3% |
-| Monthly Revenue | Dollar icon (amber) | $48,200 | +21% |
-
-No click interaction on KPI cards. They are display-only.
-
----
-
-#### 5.1.2 Bar Chart — "Agent Rentals – Last 7 Days"
-
-**Implementation:** Pure CSS flexbox bars. No `<canvas>`, no SVG library, no JavaScript charting.
-
-Container: `bg-white rounded-xl shadow p-5`.
-
-Chart structure:
-```
-[Chart Title]
-┌─────────────────────────────────────────────┐
-│   █                                         │
-│   █          █                              │
-│   █    █     █    █    █         █          │
-│   █    █     █    █    █    █    █          │
-│  Mon  Tue   Wed  Thu  Fri  Sat  Sun         │
-└─────────────────────────────────────────────┘
-```
-
-- Outer wrapper: `flex items-end gap-2 h-40` (the chart area).
-- Each bar column: `flex flex-col items-center gap-1`.
-- Bar element: `bg-indigo-500 rounded-t w-10`, height set via inline `style="height: Xpx"`.
-- Value label above bar: `text-xs text-gray-600 font-medium`.
-- Day label below: `text-xs text-gray-500`.
-
-Hardcoded data (day → rentals → bar height in px):
-
-| Day | Rentals | Bar height |
-|---|---|---|
-| Mon | 42 | 84px |
-| Tue | 31 | 62px |
-| Wed | 58 | 116px |
-| Thu | 47 | 94px |
-| Fri | 63 | 126px |
-| Sat | 29 | 58px |
-| Sun | 51 | 102px |
-
----
-
-#### 5.1.3 Recent Activity Feed
-
-Container: `bg-white rounded-xl shadow p-5`, title "Recent Activity".
-
-A vertical list of 8 hardcoded events. Each event:
-- Left: colored icon circle (12px, varies by event type).
-- Center: description text (`text-sm text-gray-700`) + relative timestamp below (`text-xs text-gray-400`).
-- No click interaction.
-
-Hardcoded events (newest first):
-
-| # | Description | Timestamp | Icon color |
-|---|---|---|---|
-| 1 | New contract signed by Acme Corp | 2 minutes ago | green |
-| 2 | Agent "DataBot v2" approved | 14 minutes ago | indigo |
-| 3 | User maria@example.com suspended | 32 minutes ago | red |
-| 4 | Skill "RAG Pipeline" added | 1 hour ago | blue |
-| 5 | Contract #CT-0091 terminated | 2 hours ago | orange |
-| 6 | Agent "WriterPro" deactivated | 3 hours ago | gray |
-| 7 | New user registered: j.smith@corp.io | 5 hours ago | green |
-| 8 | Critical error resolved: NullRef in Agent #A-019 | 8 hours ago | purple |
-
----
-
-#### 5.1.4 Top Agents Table
-
-Container: `bg-white rounded-xl shadow p-5`, title "Top Agents This Month".
-
-Simple `<table>` — no search, no filter, no pagination.
-
-Columns: Rank | Agent Name | Category | Rentals (30d) | Avg Rating | Revenue (30d)
-
-| Rank | Agent Name | Category | Rentals | Rating | Revenue |
-|---|---|---|---|---|---|
-| 1 | DataBot v2 | Data Analysis | 87 | ⭐ 4.9 | $12,180 |
-| 2 | WriterPro Elite | Writing | 74 | ⭐ 4.8 | $8,880 |
-| 3 | SupportAce | Customer Support | 68 | ⭐ 4.7 | $6,120 |
-| 4 | CodeSense | Code Generation | 61 | ⭐ 4.8 | $9,760 |
-| 5 | MarketMind | Marketing | 55 | ⭐ 4.6 | $7,150 |
-
-Rank column: bold number with gold medal emoji for rank 1 (🥇), silver for 2 (🥈), bronze for 3 (🥉), plain number for 4–5.
-
----
+**5.1.4** Hardcoded values: Total revenue — `$48,250` (delta `+12.4%`), Discount losses — `$3,180` (delta `+8.1%`), Active agents — `27` (delta `+3`), Failing agents — `4` (delta `+1`).
 
 ### 5.2 User Management
 
-**Purpose:** View, create, edit, suspend, and delete platform user accounts.
+**5.2.1** A `<table>` wrapped in `overflow-x-auto` for tablet support. Columns: Name, Email, Plan, Status, Actions. The table header uses `text-xs uppercase tracking-wider text-slate-500` with a bottom border. Each row has `hover:bg-slate-50 dark:hover:bg-slate-800/50`. The Plan column shows a neutral pill (`bg-slate-100 dark:bg-slate-800 text-xs px-2 py-0.5 rounded-md`). The Status column shows a semantic pill from §3.2 (Active = emerald, Inactive = slate).
 
-**Layout (top to bottom):**
-1. Section Header Bar (title: "User Management", subtitle: "Manage platform users and their roles")
-2. Filter Bar (search + 2 dropdowns)
-3. Data Table
-4. Pagination Bar
+**5.2.2** Each row ends with a `⋮` action-dropdown trigger — a `<button>` with `aria-haspopup="menu"`. Clicking opens a small menu, absolutely positioned below the trigger, with two items: "View detail" (with an eye icon) and "Delete" (with a trash icon, `text-rose-600`). At most one dropdown is open at any time across the entire panel.
 
----
+**5.2.3** "View detail" opens the **user-record modal**. The modal title is the user's name in `font-display text-xl`. The body is a `<dl>` listing all fields: Name, Email, Plan, Status, Joined, Last active. The modal closes via three pathways: (a) the `×` close button in its top-right corner, (b) clicking the backdrop, (c) pressing the Escape key.
 
-#### 5.2.1 Filter Bar
-
-`flex items-center gap-3 mb-4`
-
-- Search Input: placeholder "Search by name or email…", width `w-72`.
-- Dropdown 1 — Role: options `All Roles | Admin | Renter | Agent Owner`.
-- Dropdown 2 — Status: options `All Statuses | Active | Suspended | Pending`.
-
-Filter logic (applied simultaneously via AND):
-- Search matches against `name` OR `email` fields (case-insensitive substring).
-- Role dropdown matches exact `role` field (skipped if "All Roles").
-- Status dropdown matches exact `status` field (skipped if "All Statuses").
-
-Whenever any filter changes, reset to page 1 and re-render the table.
-
----
-
-#### 5.2.2 User Table
-
-Columns: `#` | Name | Email | Role | Status | Joined | Actions
-
-**Hardcoded Users (20 total):**
-
-| ID | Name | Email | Role | Status | Joined |
-|---|---|---|---|---|---|
-| U-001 | Alice Johnson | alice@example.com | Admin | Active | 2024-01-15 |
-| U-002 | Bob Martinez | bob@corp.io | Renter | Active | 2024-02-03 |
-| U-003 | Carol Singh | carol@agency.net | Agent Owner | Active | 2024-02-18 |
-| U-004 | David Lee | david@startup.co | Renter | Suspended | 2024-03-05 |
-| U-005 | Emma Wilson | emma@freelance.dev | Agent Owner | Active | 2024-03-22 |
-| U-006 | Frank Chen | frank@enterprise.com | Renter | Active | 2024-04-01 |
-| U-007 | Grace Patel | grace@techco.io | Admin | Active | 2024-04-14 |
-| U-008 | Henry O'Brien | henry@media.org | Renter | Pending | 2024-04-29 |
-| U-009 | Iris Nakamura | iris@design.studio | Agent Owner | Active | 2024-05-10 |
-| U-010 | James Kim | james@logistics.biz | Renter | Active | 2024-05-23 |
-| U-011 | Karen Reyes | karen@healthtech.co | Renter | Active | 2024-06-02 |
-| U-012 | Liam Foster | liam@eduplatform.org | Agent Owner | Suspended | 2024-06-18 |
-| U-013 | Mia Thompson | mia@retail.shop | Renter | Active | 2024-07-01 |
-| U-014 | Noah Davis | noah@fintech.io | Renter | Active | 2024-07-14 |
-| U-015 | Olivia Brown | olivia@legal.firm | Agent Owner | Pending | 2024-07-28 |
-| U-016 | Paul Garcia | paul@realestate.biz | Renter | Active | 2024-08-05 |
-| U-017 | Quinn Adams | quinn@pharma.co | Renter | Active | 2024-08-19 |
-| U-018 | Rachel Moore | rachel@ngo.org | Agent Owner | Active | 2024-09-01 |
-| U-019 | Sam Taylor | sam@gaming.studio | Renter | Suspended | 2024-09-15 |
-| U-020 | Tina White | tina@fashion.brand | Agent Owner | Active | 2024-09-30 |
-
----
-
-#### 5.2.3 User Row Actions
-
-**Edit button:**
-- Opens the Edit User Modal pre-populated with that user's current data.
-- Modal title: "Edit User — [User Name]".
-- Form fields:
-  - Name: `<input type="text">`, pre-filled.
-  - Email: `<input type="email">`, pre-filled.
-  - Role: `<select>` with options `Admin | Renter | Agent Owner`, pre-selected.
-  - Status: `<select>` with options `Active | Suspended | Pending`, pre-selected.
-- Save button: updates the in-memory user object, re-renders that table row, closes modal, shows toast "User updated successfully".
-
-**Suspend / Activate button:**
-- If user status is `Active`: button label/icon = "Suspend". Clicking sets status to `Suspended`, updates badge in row, shows toast "User suspended".
-- If user status is `Suspended`: button label/icon = "Activate". Clicking sets status to `Active`, updates badge, shows toast "User activated".
-- If user status is `Pending`: button is disabled (grayed out, not clickable).
-
-**Delete button:**
-- Opens a Confirmation Modal.
-- Modal title: "Delete User".
-- Modal body: "Are you sure you want to delete [User Name]? This action cannot be undone."
-- Cancel button: closes modal, no change.
-- Delete button (`bg-red-600`): removes the user from the in-memory array, re-renders the table, closes modal, shows toast "User deleted".
-
----
-
-#### 5.2.4 Pagination
-
-- 10 rows per page.
-- With 20 users: 2 pages.
-- After filtering, page count recalculates based on filtered result count.
-- "Showing 1–10 of 20 users" label updates dynamically.
-
----
+**5.2.4** The table renders all 5 hardcoded users from §7.1 in the order listed there.
 
 ### 5.3 Agent Management
 
-**Purpose:** Browse, register, edit, and deactivate AI agents listed on the platform.
+**5.3.1** A vertical stack of agent rows (not a table — each row is a card-like `<article>` with `rounded-xl border bg-white p-4 dark:bg-slate-900 dark:border-slate-800`). The row's top line contains, left-to-right: the agent name (`font-display text-lg font-semibold`), the owner name (muted, `text-sm`), the status pill (semantic palette — Active emerald, Inactive slate, Failing rose), an "expand skills" chevron-toggle button on the right, and the `⋮` action-dropdown trigger.
 
-**Layout (top to bottom):**
-1. Section Header Bar with "Add New Agent" button (right-aligned)
-2. Filter Bar (search + 2 dropdowns)
-3. Data Table
-4. Pagination Bar
+**5.3.2** The skill list is **collapsed by default** — implemented as a child `<div>` with `max-h-0 overflow-hidden` transitioning to `max-h-40` when expanded, using `transition-all duration-300 ease-in-out`. The chevron icon rotates 180° on expand via `transition-transform duration-300`. When expanded, the skill list shows the agent's skills as small neutral pills (`bg-slate-100 dark:bg-slate-800 text-xs px-2 py-0.5 rounded-md`) inside a horizontally wrapped flex container.
 
----
+**5.3.3** Each row's action dropdown contains "Configure" and "Delete". "Configure" opens an **agent-system-prompt modal** whose title is the agent name plus the subtitle "System prompt", and whose body is an editable `<textarea>` with 10 rows, `font-mono text-sm`, `bg-slate-50 dark:bg-slate-900`, pre-filled with the agent's hardcoded system prompt from §7.2. The modal includes a "Save" button that simply closes the modal — there is no submit logic.
 
-#### 5.3.1 Filter Bar
-
-- Search Input: placeholder "Search by agent name…", `w-64`.
-- Dropdown 1 — Category: `All Categories | Data Analysis | Writing | Customer Support | Code Generation | Marketing`.
-- Dropdown 2 — Status: `All Statuses | Active | Inactive | Under Review`.
-
-Filter logic: same AND pattern as User Management (search on `name`, dropdowns exact match).
-
----
-
-#### 5.3.2 Agent Table
-
-Columns: `#` | Agent Name | Category | Skills | Owner | Hourly Rate | Status | Actions
-
-**Hardcoded Agents (18 total):**
-
-| ID | Name | Category | Skills | Owner | Rate | Status |
-|---|---|---|---|---|---|---|
-| A-001 | DataBot v2 | Data Analysis | NLP, Data Viz, SQL | Carol Singh | $45/hr | Active |
-| A-002 | WriterPro Elite | Writing | Copywriting, SEO, Summarization | Emma Wilson | $35/hr | Active |
-| A-003 | SupportAce | Customer Support | Sentiment Analysis, FAQ Handling, Escalation | Iris Nakamura | $30/hr | Active |
-| A-004 | CodeSense | Code Generation | Python, JavaScript, Code Review | Emma Wilson | $55/hr | Active |
-| A-005 | MarketMind | Marketing | SEO, Ad Copy, Campaign Planning | Rachel Moore | $40/hr | Active |
-| A-006 | InsightPro | Data Analysis | Data Viz, Forecasting, Reporting | Carol Singh | $50/hr | Active |
-| A-007 | NarratorAI | Writing | Storytelling, Summarization, Translation | Tina White | $28/hr | Inactive |
-| A-008 | HelpBot Ultra | Customer Support | FAQ Handling, Live Chat, CSAT | Iris Nakamura | $25/hr | Active |
-| A-009 | SQLWizard | Data Analysis | SQL, ETL, Data Cleaning | Carol Singh | $48/hr | Under Review |
-| A-010 | ContentFlow | Writing | Blog Writing, SEO, Social Media | Tina White | $32/hr | Active |
-| A-011 | DevAssist | Code Generation | TypeScript, Code Review, Debugging | Emma Wilson | $60/hr | Active |
-| A-012 | BrandVoice | Marketing | Brand Strategy, Ad Copy, Email Marketing | Rachel Moore | $42/hr | Active |
-| A-013 | LogicBot | Code Generation | Python, Data Pipelines, API Integration | Emma Wilson | $52/hr | Inactive |
-| A-014 | TrendSpotter | Marketing | Social Listening, Trend Analysis, Reporting | Rachel Moore | $38/hr | Under Review |
-| A-015 | LexiBot | Writing | Legal Writing, Document Review, Summarization | Olivia Brown | $45/hr | Active |
-| A-016 | QueryMaster | Data Analysis | SQL, BI Dashboards, KPI Tracking | Carol Singh | $47/hr | Active |
-| A-017 | ReplyBot | Customer Support | Email Handling, Sentiment Analysis, Routing | Iris Nakamura | $27/hr | Active |
-| A-018 | CampaignAI | Marketing | Paid Ads, A/B Testing, ROI Analysis | Rachel Moore | $44/hr | Inactive |
-
----
-
-#### 5.3.3 Agent Row Actions
-
-**View button:**
-- Opens a read-only Agent Detail Modal.
-- Modal title: "Agent Details — [Agent Name]".
-- Modal body sections:
-  - **Info:** Name, Category, Owner, Hourly Rate, Status (badge), Created Date (hardcode to a plausible date per agent).
-  - **Description:** 2–3 sentence paragraph describing what the agent does (hardcoded per agent).
-  - **Skills:** displayed as a row of gray pill badges.
-  - **Performance Stats:** three stat boxes in a row:
-    - Uptime: e.g. "99.2%"
-    - Avg Rating: e.g. "4.9 ⭐"
-    - Total Rentals: e.g. "187"
-  (All values hardcoded per agent.)
-- Footer: only a "Close" button.
-
-Hardcoded agent detail data:
-
-| Agent | Description | Uptime | Rating | Rentals |
-|---|---|---|---|---|
-| DataBot v2 | Specializes in turning raw datasets into actionable insights using advanced SQL queries and automated visualizations. Ideal for business analytics teams. | 99.2% | 4.9 | 187 |
-| WriterPro Elite | A versatile writing agent capable of producing SEO-optimized blog posts, ad copy, and executive summaries. Adapts tone to brand voice. | 98.7% | 4.8 | 152 |
-| SupportAce | Handles frontline customer inquiries with empathy-aware sentiment detection. Routes complex issues to human agents automatically. | 99.8% | 4.7 | 214 |
-| CodeSense | Generates production-ready Python and JavaScript code from natural language specifications. Includes inline documentation and unit tests. | 98.1% | 4.8 | 139 |
-| MarketMind | Builds end-to-end marketing campaigns including keyword research, ad copy, and performance tracking. Integrates with major ad platforms via reports. | 97.5% | 4.6 | 118 |
-| InsightPro | Delivers scheduled BI reports with trend forecasting powered by time-series models. Used by finance and operations teams. | 99.0% | 4.7 | 103 |
-| NarratorAI | Transforms structured data and briefs into compelling narratives for internal and external communications. | 96.4% | 4.5 | 67 |
-| HelpBot Ultra | High-volume customer support agent designed for e-commerce. Manages returns, FAQs, and CSAT surveys autonomously. | 99.9% | 4.7 | 198 |
-| SQLWizard | Converts plain-English business questions into optimized SQL queries across multiple database dialects. | 97.8% | 4.6 | 88 |
-| ContentFlow | Produces a steady stream of blog content, social posts, and newsletter issues on a scheduled basis. | 98.3% | 4.5 | 95 |
-| DevAssist | Pairs with engineering teams to review pull requests, catch bugs, and suggest TypeScript improvements. | 98.9% | 4.8 | 112 |
-| BrandVoice | Maintains consistent brand messaging across all channels; generates email campaigns and brand guidelines. | 97.1% | 4.6 | 79 |
-| LogicBot | Builds robust Python data pipelines and REST API integrations with built-in error handling. | 96.0% | 4.4 | 54 |
-| TrendSpotter | Monitors social media and search trends in real time, generating daily insight reports. | 95.5% | 4.3 | 41 |
-| LexiBot | Drafts legal documents, summarizes contracts, and flags compliance risks for legal teams. | 99.1% | 4.9 | 76 |
-| QueryMaster | Powers executive dashboards with real-time KPI tracking and anomaly detection. | 98.6% | 4.7 | 109 |
-| ReplyBot | Handles high-volume email queues with intelligent routing and auto-reply generation. | 99.4% | 4.6 | 163 |
-| CampaignAI | Plans and optimizes paid ad campaigns across Google Ads and Meta with A/B testing reports. | 96.8% | 4.5 | 62 |
-
-**Edit button:**
-- Opens the Add/Edit Agent Modal pre-populated.
-- Same form fields as the Add New Agent modal (see 5.3.4).
-- Save updates the in-memory agent object and re-renders that row. Toast: "Agent updated".
-
-**Deactivate / Activate button:**
-- If `Active`: sets status to `Inactive`. Toast: "Agent deactivated".
-- If `Inactive`: sets status to `Active`. Toast: "Agent activated".
-- If `Under Review`: button is disabled (grayed out, not clickable).
-
----
-
-#### 5.3.4 Add New Agent Modal
-
-Triggered by the "Add New Agent" button in the section header.
-
-Modal title: "Add New Agent"
-
-Form fields (all required):
-- Agent Name: `<input type="text">` placeholder "e.g. DataBot Pro"
-- Category: `<select>` — `Data Analysis | Writing | Customer Support | Code Generation | Marketing`
-- Description: `<textarea rows="3">` placeholder "Describe what this agent does…"
-- Skills: `<input type="text">` placeholder "e.g. NLP, SQL, Data Viz (comma-separated)"
-- Owner: `<input type="text">` placeholder "Owner's full name"
-- Hourly Rate ($): `<input type="number" min="1">` placeholder "45"
-- Status: `<select>` — `Active | Inactive | Under Review`
-
-On submit:
-- Validates all fields are non-empty (shows inline red error text under each empty field if not).
-- Generates new ID as `A-0{n+1}` (where n = current array length).
-- Prepends the new agent to the hardcoded array.
-- Re-renders the agent table (new agent appears on page 1, row 1).
-- Closes modal.
-- Shows toast: "Agent added successfully".
-
----
-
-#### 5.3.5 Pagination
-
-- 10 rows per page.
-- With 18 agents: 2 pages (page 2 has 8 rows).
-- Recalculates after filtering.
-
----
+**5.3.4** The list renders all 4 hardcoded agents from §7.2 in the order: Atlas, Beacon, Ledger, Scribe.
 
 ### 5.4 Skills
 
-**Purpose:** Define and manage the skill taxonomy that agents can be tagged with.
+**5.4.1** A short `<p>` block at the top of the section explains what a "skill" is in the AgentHub context, in muted text inside `max-w-prose`. **Exact copy:** *"In AgentHub, a skill is a reusable capability — a pluggable behavior such as web browsing, document parsing, or calendar access — that can be attached to an agent at rental time. Skills are versioned independently and priced per use."*
 
-**Layout (top to bottom):**
-1. Section Header Bar (title: "Skills", subtitle: "Manage the skill library for AI agents") with "Add Skill" button right-aligned
-2. Search Input (left-aligned, below header)
-3. 3-column card grid (`grid grid-cols-3 gap-4`)
+**5.4.2** Below the explanation, a `grid grid-cols-1 md:grid-cols-2 gap-4` of skill cards. Each card has three vertically stacked regions: a header row with the skill name (`font-display text-lg`) on the left and the `⋮` action dropdown on the right; a body paragraph with the description (`text-sm text-slate-600 dark:text-slate-400`); and a footer line `Enabled on N agents` in muted text, prefixed with a small indigo dot (`w-1.5 h-1.5 rounded-full bg-indigo-500`).
 
----
+**5.4.3** Each skill card's action dropdown contains "View detail" and "Delete". "View detail" opens a **skill-detail modal** whose body shows the skill name, full description, version, price, and a bulleted list of agents that currently have it enabled. All values come from §7.3.
 
-#### 5.4.1 Search Input
-
-- Placeholder: "Search skills…", `w-72`.
-- Filters cards in real-time by skill name OR category (case-insensitive substring).
-- Cards not matching are hidden (`display: none`).
-- No pagination for Skills — all 15 cards are in the DOM; filtering is purely show/hide.
-
----
-
-#### 5.4.2 Skill Card Structure
-
-```
-┌───────────────────────────────────────┐
-│  [Emoji Icon]   [Category Badge]      │
-│  Skill Name (bold, lg)                │
-│  Description (2 lines, gray, sm)      │
-│                                       │
-│  👤 X Agents                  [✏️][🗑️] │
-└───────────────────────────────────────┘
-```
-
-- Background: `bg-white`, `rounded-xl`, `shadow`, `p-5`.
-- Emoji icon: 32px, displayed in a colored circle background.
-- Category badge: small colored pill (same palette as Status Badge but category-colored).
-- Skill Name: `text-lg font-semibold text-gray-800`.
-- Description: `text-sm text-gray-500`, clamped to 2 lines (`line-clamp-2`).
-- Agent count: `text-xs text-gray-500`, with a small user icon.
-- Edit (pencil) and Delete (trash) icon buttons at bottom-right of card.
-
-**Hardcoded Skills (15 total):**
-
-| # | Name | Category | Icon | Agents | Description |
-|---|---|---|---|---|---|
-| 1 | Natural Language Processing | AI/ML | 🧠 | 8 | Understands and generates human language with contextual awareness. |
-| 2 | Data Visualization | Analytics | 📊 | 6 | Transforms raw data into clear, interactive charts and dashboards. |
-| 3 | Sentiment Analysis | AI/ML | 💬 | 5 | Detects emotional tone and intent in text for customer feedback analysis. |
-| 4 | Code Review | Development | 🔍 | 4 | Analyzes code for bugs, style violations, and performance issues. |
-| 5 | SEO Optimization | Marketing | 🔎 | 5 | Improves content discoverability through keyword and structure analysis. |
-| 6 | SQL | Analytics | 🗄️ | 7 | Writes and optimizes database queries across relational databases. |
-| 7 | Copywriting | Content | ✍️ | 6 | Crafts persuasive marketing copy tailored to target audiences. |
-| 8 | Forecasting | Analytics | 📈 | 3 | Predicts future trends using statistical and machine learning models. |
-| 9 | Python | Development | 🐍 | 5 | Develops scripts, pipelines, and automation using Python. |
-| 10 | FAQ Handling | Support | ❓ | 4 | Resolves common customer questions from a structured knowledge base. |
-| 11 | Summarization | Content | 📝 | 7 | Condenses long-form documents into concise, readable summaries. |
-| 12 | Translation | Content | 🌐 | 3 | Translates content across 50+ languages with cultural nuance. |
-| 13 | A/B Testing | Marketing | 🧪 | 2 | Designs and analyzes split tests to optimize conversion rates. |
-| 14 | ETL Pipelines | Analytics | 🔄 | 3 | Extracts, transforms, and loads data between systems reliably. |
-| 15 | Brand Strategy | Marketing | 🎯 | 2 | Develops cohesive brand positioning, voice, and messaging frameworks. |
-
----
-
-#### 5.4.3 Add / Edit Skill Modal
-
-**Add Skill modal** (triggered by header button): empty form.
-**Edit modal** (triggered by pencil icon on card): pre-populated form.
-
-Modal title: "Add Skill" or "Edit Skill — [Skill Name]"
-
-Form fields:
-- Skill Name: `<input type="text">`, required.
-- Category: `<select>` — `AI/ML | Analytics | Development | Content | Marketing | Support`.
-- Icon (Emoji): `<input type="text" maxlength="2">`, placeholder "e.g. 🧠", required.
-- Description: `<textarea rows="2">`, required.
-
-On Add submit: generates new card, appends to grid, closes modal, toast "Skill added".
-On Edit submit: updates that card's content in place, closes modal, toast "Skill updated".
-
----
-
-#### 5.4.4 Delete Skill
-
-Confirmation Modal:
-- Title: "Delete Skill"
-- Body: "Are you sure you want to delete '[Skill Name]'? Agents currently using this skill will retain the tag."
-- Cancel: close, no change.
-- Delete (`bg-red-600`): removes card from DOM, updates in-memory array, toast "Skill deleted".
-
----
+**5.4.4** The catalog renders all 4 hardcoded skills from §7.3.
 
 ### 5.5 Agent Contracts
 
-**Purpose:** View all rental contracts, inspect details, and terminate active or pending contracts.
+**5.5.1** A `<table>` (wrapped in `overflow-x-auto`) with columns: Client, Rented Agent, Skills, Start, End, Amount, Actions. The Skills column shows the contracted skills as small inline neutral pills. Amount is right-aligned (`text-right tabular-nums`). The Start and End columns use `text-sm` and the Amount column uses `font-medium`.
 
-**Layout (top to bottom):**
-1. Section Header Bar (title: "Agent Contracts", subtitle: "View and manage rental agreements") — no primary action button
-2. Filter Bar
-3. Data Table
-4. Pagination Bar
+**5.5.2** Each row's action dropdown contains "View detail" and "Delete". "View detail" opens a **contract-detail modal** whose body shows: client name, agent name, contract dates (Start → End), an itemized inner table listing each contracted skill with its individual price, and a final summary row showing the total amount paid in bold.
 
----
+**5.5.3** Past contracts (end date earlier than today, **2026-04-28**) display their dates in muted text (`text-slate-400`). Active contracts use normal body text. There is no separate Status column — the visual state of the dates implies the status.
 
-#### 5.5.1 Filter Bar
-
-- Search Input: placeholder "Search by contract ID or renter…", `w-72`.
-- Dropdown — Status: `All Statuses | Active | Pending | Completed | Cancelled`.
-- Date input — Start From: `<input type="date">`, label "From:".
-- Date input — Start To: `<input type="date">`, label "To:".
-
-Filter logic:
-- Search matches `contractId` OR `renter` (case-insensitive substring).
-- Status dropdown: exact match (skip if "All Statuses").
-- Date range: show rows where `startDate >= From AND startDate <= To` (each date filter applied only if the input has a value).
-- All filters AND'd simultaneously.
-
----
-
-#### 5.5.2 Contract Table
-
-Columns: Contract ID | Renter | Agent | Start Date | End Date | Duration | Amount | Status | Actions
-
-**Hardcoded Contracts (22 total):**
-
-| Contract ID | Renter | Agent | Start | End | Duration | Amount | Status |
-|---|---|---|---|---|---|---|---|
-| CT-0001 | Acme Corp | DataBot v2 | 2024-10-01 | 2024-10-31 | 30 days | $1,350 | Completed |
-| CT-0002 | Bright Media | WriterPro Elite | 2024-10-05 | 2024-11-04 | 30 days | $1,050 | Completed |
-| CT-0003 | CloudStack Inc | SupportAce | 2024-10-10 | 2025-01-10 | 90 days | $2,700 | Active |
-| CT-0004 | Delta Retail | CodeSense | 2024-10-15 | 2024-12-15 | 60 days | $3,300 | Active |
-| CT-0005 | Echo Analytics | InsightPro | 2024-10-20 | 2024-11-20 | 30 days | $1,500 | Completed |
-| CT-0006 | FutureLabs | MarketMind | 2024-11-01 | 2024-12-01 | 30 days | $1,200 | Completed |
-| CT-0007 | GreenPath | HelpBot Ultra | 2024-11-05 | 2025-02-05 | 90 days | $2,250 | Active |
-| CT-0008 | Harbor Freight | DataBot v2 | 2024-11-10 | 2024-12-10 | 30 days | $1,350 | Completed |
-| CT-0009 | Ignite Ventures | CodeSense | 2024-11-15 | 2025-01-15 | 60 days | $3,300 | Active |
-| CT-0010 | Jupiter Corp | LexiBot | 2024-11-20 | 2025-02-20 | 90 days | $4,050 | Active |
-| CT-0011 | Kinetic Labs | WriterPro Elite | 2024-12-01 | 2024-12-31 | 30 days | $1,050 | Cancelled |
-| CT-0012 | LuminaTech | TrendSpotter | 2024-12-05 | 2025-01-05 | 30 days | $1,140 | Completed |
-| CT-0013 | Meridian Health | SupportAce | 2024-12-10 | 2025-03-10 | 90 days | $2,700 | Active |
-| CT-0014 | Nova Systems | DevAssist | 2024-12-15 | 2025-03-15 | 90 days | $5,400 | Active |
-| CT-0015 | Orbit Dynamics | MarketMind | 2025-01-01 | 2025-02-01 | 30 days | $1,200 | Active |
-| CT-0016 | Pinnacle Group | QueryMaster | 2025-01-05 | 2025-04-05 | 90 days | $4,230 | Active |
-| CT-0017 | Quantum Bridge | ReplyBot | 2025-01-10 | 2025-02-10 | 30 days | $810 | Active |
-| CT-0018 | Riviera Brand | BrandVoice | 2025-01-15 | 2025-02-15 | 30 days | $1,260 | Active |
-| CT-0019 | Summit Capital | DataBot v2 | 2025-01-20 | — | — | $1,350 | Pending |
-| CT-0020 | Terrapin AI | CampaignAI | 2025-01-22 | — | — | $1,320 | Pending |
-| CT-0021 | Unity Works | ContentFlow | 2025-01-25 | 2025-04-25 | 90 days | $2,880 | Active |
-| CT-0022 | Vertex Labs | SQLWizard | 2025-01-28 | 2025-02-28 | 30 days | $1,440 | Cancelled |
-
-For Pending contracts, End Date and Duration display as "—" (TBD).
-
----
-
-#### 5.5.3 Contract Row Actions
-
-**View button:**
-- Opens a read-only Contract Detail Modal.
-- Modal title: "Contract Details — [Contract ID]"
-- Modal body sections:
-  - **Parties:** Renter name, Agent name (with category).
-  - **Dates:** Start Date, End Date (or "TBD"), Duration.
-  - **Financials:** Hourly Rate, Total Hours (Duration × 8hrs/day), Amount.
-  - **Payment Breakdown:** table with rows:
-
-    | Item | Amount |
-    |---|---|
-    | Base Fee | [stated Amount] |
-    | Platform Fee (10%) | [Amount × 0.10] |
-    | Tax (7%) | [Amount × 0.07] |
-    | **Total** | **[Base + Platform Fee + Tax]** |
-
-  - **Status:** Status badge.
-  - **Terms (hardcoded):** "The renter agrees to use the agent solely for lawful business purposes. The platform reserves the right to terminate service if misuse is detected. All outputs generated by the agent remain the intellectual property of the renter."
-- Footer: "Close" button only.
-
-**Terminate button:**
-- Visible and enabled ONLY for contracts with status `Active` or `Pending`.
-- For `Completed` and `Cancelled` contracts: the Terminate button is not rendered.
-- Clicking opens a Confirmation Modal:
-  - Title: "Terminate Contract"
-  - Body: "Are you sure you want to terminate contract [CT-XXXX]? This action cannot be undone."
-  - Cancel: close, no change.
-  - Terminate (`bg-red-600`): sets contract status to `Cancelled`, updates badge in row, closes modal, toast "Contract terminated".
-
----
-
-#### 5.5.4 Pagination
-
-- 10 rows per page.
-- With 22 contracts: 3 pages (page 3 has 2 rows).
-- Recalculates based on filtered results.
-
----
+**5.5.4** The table renders all 4 hardcoded contracts from §7.4.
 
 ### 5.6 Error Log
 
-**Purpose:** Monitor, investigate, and resolve system errors generated by AI agents.
+**5.6.1** A `<table>` with columns: Timestamp, Agent, Type, Description, Actions. Timestamps render in `font-mono text-xs text-slate-500`. The Type column is a color-coded badge using the semantic palette: Critical = rose, Warning = amber, Info = sky.
 
-**Layout (top to bottom):**
-1. Section Header Bar (title: "Error Log", subtitle: "Monitor and resolve system errors") with "Export" button right-aligned
-2. Filter Bar
-3. Data Table
-4. Pagination Bar
+**5.6.2** Each row's action dropdown contains "View detail" and "Mark as resolved". "View detail" opens an **error-detail modal** whose body shows the timestamp, agent, type, description, and a full error trace inside a `<pre>` block (`font-mono text-xs bg-slate-100 dark:bg-slate-800 rounded-md p-4 overflow-x-auto whitespace-pre`). The trace text is hardcoded plausible content (5–8 lines per entry — see §7.5 note).
 
----
+**5.6.3** "Mark as resolved" applies in-place styling to the row: the description cell gets `line-through text-slate-400`, the entire row gets `opacity-60`, and the row's action-dropdown trigger gets `disabled` plus `cursor-not-allowed`. The row is **not removed**.
 
-#### 5.6.1 Filter Bar
-
-`flex items-center gap-3 flex-wrap mb-4`
-
-- Search Input: placeholder "Search by message or agent…", `w-72`.
-- Dropdown — Severity: `All Severities | Critical | Warning | Info`.
-- Dropdown — Status: `All Statuses | Resolved | Unresolved`.
-- Date input — From: `<input type="date">`, label "From:", shows rows where timestamp date >= selected date.
-
-All four filters AND'd simultaneously. Reset to page 1 on any change.
-
-**Export button** (in section header, right side):
-- Styled: `bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm`.
-- On click: shows toast "Export initiated — CSV will be ready shortly". No file is produced.
+**5.6.4** The table renders all 6 hardcoded entries from §7.5 in reverse-chronological order (newest first).
 
 ---
 
-#### 5.6.2 Error Log Table
+## 6. Component Inventory
 
-Columns: Error ID | Timestamp | Agent | User | Type | Message (truncated) | Severity | Status | Actions
+These reusable components appear across multiple sections. Each is implemented once (one DOM template, one set of JS handlers) and varies only by data.
 
-Message column: display first 40 characters + "…" if the full message is longer. Full message shown in View modal.
+| # | Component | Used in | Notes |
+|---|---|---|---|
+| 6.1 | Sidebar | Global (always visible) | Persistent left nav with 6 links + active indicator. |
+| 6.2 | Top Bar | Global (always visible) | Sticky header with section title + dark-mode toggle. |
+| 6.3 | Metric Card | Dashboard | Icon container, label, value, delta. Configurable accent color. |
+| 6.4 | Status Badge (pill) | User Mgmt, Agent Mgmt, Error Log | Semantic palette. Rounded-full. |
+| 6.5 | Action Dropdown (`⋮`) | User Mgmt, Agent Mgmt, Skills, Contracts, Error Log | Trigger + absolutely positioned menu. Closes on outside click and Escape. |
+| 6.6 | Modal | User Mgmt, Agent Mgmt, Skills, Contracts, Error Log | Backdrop + centered panel. Closes via × button, backdrop click, Escape. |
+| 6.7 | Collapsible Skill List | Agent Mgmt | Smooth max-height transition + rotating chevron. |
+| 6.8 | Color-Coded Error Type Badge | Error Log | Variant of status badge with rose / amber / sky semantics. |
+| 6.9 | Dark Mode Toggle | Top Bar | Sun/moon icon swap, toggles `dark` class on `<html>`. |
 
-**Hardcoded Errors (25 total):**
-
-| Error ID | Timestamp | Agent | User | Type | Full Message | Severity | Status |
-|---|---|---|---|---|---|---|---|
-| E-001 | 2025-01-10 08:14:22 | DataBot v2 | Acme Corp | NullReferenceError | Null pointer exception in data pipeline at step 3 | Critical | Resolved |
-| E-002 | 2025-01-10 09:31:05 | WriterPro Elite | Bright Media | TimeoutError | Request timed out after 30s — LLM response delayed | Warning | Resolved |
-| E-003 | 2025-01-11 11:02:44 | SupportAce | CloudStack Inc | AuthError | Invalid API token provided during session initialization | Critical | Unresolved |
-| E-004 | 2025-01-11 13:45:19 | CodeSense | Delta Retail | SyntaxError | Generated code contains unmatched brackets in output block | Warning | Resolved |
-| E-005 | 2025-01-12 07:28:01 | MarketMind | FutureLabs | RateLimitError | Upstream rate limit exceeded — retrying in 60 seconds | Info | Resolved |
-| E-006 | 2025-01-12 10:55:33 | InsightPro | Echo Analytics | DataFormatError | Unexpected null in column "revenue_Q4" at row 847 | Warning | Unresolved |
-| E-007 | 2025-01-13 08:00:15 | HelpBot Ultra | GreenPath | MemoryError | Agent heap exceeded 512MB during bulk ticket processing | Critical | Resolved |
-| E-008 | 2025-01-13 14:22:47 | DataBot v2 | Harbor Freight | QueryError | SQL JOIN produced Cartesian product — query aborted | Warning | Resolved |
-| E-009 | 2025-01-14 09:10:08 | CodeSense | Ignite Ventures | RuntimeError | Unhandled exception in sandbox execution environment | Critical | Unresolved |
-| E-010 | 2025-01-14 16:05:52 | LexiBot | Jupiter Corp | ParseError | Unable to parse PDF attachment — file may be corrupted | Warning | Resolved |
-| E-011 | 2025-01-15 10:30:00 | TrendSpotter | LuminaTech | APIError | Third-party trends API returned HTTP 503 | Info | Resolved |
-| E-012 | 2025-01-15 11:48:36 | SupportAce | Meridian Health | SessionError | User session expired mid-conversation — context lost | Info | Unresolved |
-| E-013 | 2025-01-16 08:05:14 | DevAssist | Nova Systems | TypeMismatch | Expected string, received integer at parameter "userId" | Warning | Resolved |
-| E-014 | 2025-01-16 12:33:29 | MarketMind | Orbit Dynamics | CacheError | Cache invalidation failed — serving stale campaign data | Info | Resolved |
-| E-015 | 2025-01-17 09:21:55 | QueryMaster | Pinnacle Group | PermissionError | Insufficient database permissions for schema "prod_data" | Critical | Unresolved |
-| E-016 | 2025-01-17 14:00:03 | ReplyBot | Quantum Bridge | EncodingError | UTF-8 decode error in customer email attachment | Warning | Resolved |
-| E-017 | 2025-01-18 08:45:17 | BrandVoice | Riviera Brand | ModelError | Output token limit exceeded — response truncated at 4096 | Info | Resolved |
-| E-018 | 2025-01-18 11:12:44 | DataBot v2 | Summit Capital | NetworkError | Connection to data warehouse timed out after 10 retries | Critical | Unresolved |
-| E-019 | 2025-01-19 09:00:00 | CampaignAI | Terrapin AI | ConfigError | Missing required environment variable "META_ACCESS_TOKEN" | Critical | Resolved |
-| E-020 | 2025-01-19 13:55:08 | ContentFlow | Unity Works | ValidationError | Output failed content policy check — flagged for review | Warning | Unresolved |
-| E-021 | 2025-01-20 08:30:22 | SQLWizard | Vertex Labs | QueryError | Ambiguous column reference in auto-generated JOIN clause | Warning | Resolved |
-| E-022 | 2025-01-20 10:44:10 | HelpBot Ultra | GreenPath | OverloadError | Concurrent session limit reached — 50/50 slots occupied | Info | Unresolved |
-| E-023 | 2025-01-21 08:15:00 | InsightPro | Echo Analytics | DataFormatError | ISO 8601 date parse failure in column "last_updated" | Info | Resolved |
-| E-024 | 2025-01-21 13:28:55 | DevAssist | Nova Systems | SecurityError | Detected potentially unsafe shell command in generated script | Critical | Resolved |
-| E-025 | 2025-01-22 09:05:40 | LexiBot | Jupiter Corp | NullReferenceError | Document metadata returned null — unable to extract clauses | Warning | Unresolved |
+**Implementation rule:** where components share behavior (action dropdown, modal), implement a single JS function for each behavior parameterized by element ID — not duplicate copies per section. There must be exactly one `openModal(id)` / `closeModal(id)` pair, exactly one `toggleDropdown(id)` function, and exactly one global outside-click handler that closes any open dropdown.
 
 ---
 
-#### 5.6.3 Error Log Row Actions
+## 7. Hardcoded Data
 
-**View button:**
-- Opens an Error Detail Modal.
-- Modal title: "Error Details — [Error ID]"
-- Modal body sections:
-  - **Overview:** Error ID, Timestamp, Severity badge, Status badge.
-  - **Context:** Agent name, User (renter), Error Type.
-  - **Full Message:** full (untruncated) message text, styled `bg-gray-50 rounded p-3 text-sm font-mono text-gray-800`.
-  - **Stack Trace (placeholder):** same code block styling, containing a fictional but realistic trace:
-    ```
-    at AgentRuntime.execute (runtime.js:142)
-    at Pipeline.run (pipeline.js:87)
-    at TaskQueue.process (queue.js:33)
-    ```
-  - **Resolution Status:** current status badge. If Resolved, show a "Resolved at" timestamp hardcoded ~2 hours after the error timestamp.
-- Footer: Close button + Mark Resolved / Mark Unresolved button (same behavior as row action).
+Canonical values used throughout the panel. **Names must match exactly across sections.** Agent Management ↔ Agent Contracts ↔ Error Log share agent names. User Management ↔ Agent owners (§7.2) share user names.
 
-**Mark Resolved / Mark Unresolved toggle:**
-- Appears both as a row action and in the View modal footer.
-- Unresolved → "Mark Resolved" (`bg-green-600`): sets status to `Resolved`, updates table row badge, shows toast "Error marked as resolved".
-- Resolved → "Mark Unresolved" (`bg-orange-500`): sets status to `Unresolved`, updates table row badge, shows toast "Error marked as unresolved".
-- If modal is open when toggled via row action, the modal badge also updates.
+### 7.1 Users (5)
 
----
+| Name | Email | Plan | Status | Joined | Last active |
+|---|---|---|---|---|---|
+| Maya Chen | maya.chen@northwind.com | Pro | Active | 2025-08-12 | 2026-04-28 |
+| Daniel Ruiz | d.ruiz@helios-labs.io | Enterprise | Active | 2025-06-04 | 2026-04-27 |
+| Priya Patel | priya@stellargrid.co | Free | Inactive | 2025-12-19 | 2026-02-11 |
+| Tomás Oliveira | tomas.o@bluepeak.dev | Pro | Active | 2026-01-08 | 2026-04-28 |
+| Sarah Kim | s.kim@meridianfin.com | Enterprise | Active | 2025-04-30 | 2026-04-26 |
 
-#### 5.6.4 Pagination
+### 7.2 Agents (4)
 
-- 10 rows per page.
-- With 25 errors: 3 pages (page 3 has 5 rows).
-- Recalculates based on filtered results.
+| Name | Owner (from §7.1) | Status | Skills | System prompt (excerpt — extend in build) |
+|---|---|---|---|---|
+| Atlas | Daniel Ruiz | Active | Web Search, Document Reader | "You are Atlas, a research analyst. Investigate topics by combining web search with document parsing. Cite every claim with a source URL or document name. Prefer primary sources over aggregators." |
+| Beacon | Maya Chen | Active | Calendar Manager, Email Composer | "You are Beacon, a scheduling assistant. Coordinate meetings across the user's calendar and draft polite, concise emails to confirm and reschedule. Always offer two alternative time slots." |
+| Ledger | Sarah Kim | Failing | Document Reader, Web Search | "You are Ledger, a financial document analyst. Extract figures from earnings reports and PDFs, and cross-check them with public web sources. Flag discrepancies of more than 1%." |
+| Scribe | Tomás Oliveira | Inactive | Web Search, Email Composer | "You are Scribe, a documentation writer. Draft technical write-ups from raw notes and refine them for an external audience. Prefer plain language over jargon." |
 
----
+In the modal, the system prompt is shown in full — the build phase should extend each excerpt to a 6–10 line realistic prompt with constraints, output format guidance, and a refusal clause.
 
-## 6. Navigation & SPA Behavior
+### 7.3 Skills (4)
 
-### 6.1 Initial State (page load)
-- Dashboard section is visible.
-- Dashboard nav item has active class.
-- All other 5 sections have `display: none`.
-- Page title in top bar reads "Dashboard".
+| Name | Description | Version | Price | Enabled on (count) | Enabled on (agents) |
+|---|---|---|---|---|---|
+| Web Search | Browse the web and retrieve up-to-date information from public sources. | v1.4.2 | $0.80 / 1,000 invocations | 3 | Atlas, Ledger, Scribe |
+| Document Reader | Parse and summarize PDFs, DOCX, and spreadsheets up to 200 pages. | v2.0.1 | $1.20 / 1,000 invocations | 2 | Atlas, Ledger |
+| Calendar Manager | Read and create events on connected Google and Outlook calendars. | v1.1.0 | $0.50 / 1,000 invocations | 1 | Beacon |
+| Email Composer | Draft and review emails based on conversational context and tone hints. | v1.3.5 | $0.95 / 1,000 invocations | 2 | Beacon, Scribe |
 
-### 6.2 On Nav Click (pseudocode)
+Cross-check: skill counts here must match the skills listed under each agent in §7.2.
 
-```javascript
-function navigateTo(sectionId, label) {
-  document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
-  document.getElementById(sectionId).style.display = 'block';
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('nav-' + sectionId).classList.add('active');
-  document.getElementById('page-title').textContent = label;
-}
-```
+### 7.4 Agent Contracts (4)
 
----
+| Client | Agent | Skills | Start | End | Amount | Itemized prices |
+|---|---|---|---|---|---|---|
+| Helios Labs | Atlas | Web Search, Document Reader | 2025-11-01 | 2026-05-01 | $3,200 | Web Search $1,800 · Document Reader $1,400 |
+| Northwind Logistics | Beacon | Calendar Manager, Email Composer | 2026-01-15 | 2026-07-15 | $2,400 | Calendar Manager $1,500 · Email Composer $900 |
+| Meridian Financial | Ledger | Document Reader, Web Search | 2025-09-10 | 2026-03-10 | $4,100 | Document Reader $2,500 · Web Search $1,600 |
+| BluePeak Studios | Scribe | Web Search, Email Composer | 2026-02-20 | 2026-08-20 | $1,950 | Web Search $1,200 · Email Composer $750 |
 
-## 7. Data Architecture
+**Today's date for active/past determination: 2026-04-28.** Active contracts: Helios Labs / Atlas, Northwind / Beacon, BluePeak / Scribe. Past contracts: Meridian Financial / Ledger (ended 2026-03-10).
 
-All data lives in JavaScript variables declared in a `<script>` block (or `app.js`). No data is fetched or persisted.
+Each client name in this table corresponds to the email domain of one user in §7.1 (e.g., Maya Chen at northwind.com → Northwind Logistics).
 
-```javascript
-const users     = [ { id, name, email, role, status, joined }, ... ];       // 20 entries
-const agents    = [ { id, name, category, skills, owner, rate, status }, ... ]; // 18 entries
-const skills    = [ { id, name, category, icon, agentCount, description }, ... ]; // 15 entries
-const contracts = [ { id, renter, agent, startDate, endDate, duration, amount, status }, ... ]; // 22 entries
-const errors    = [ { id, timestamp, agent, user, type, message, severity, status }, ... ]; // 25 entries
-```
+### 7.5 Error Log Entries (6)
 
-State mutations (edits, deletes, status toggles, additions) modify the in-memory arrays directly and re-render only the affected section. A full page refresh resets all data to hardcoded initial values.
+| Timestamp | Agent | Type | Description |
+|---|---|---|---|
+| 2026-04-28 09:14 | Ledger | Critical | Skill 'Document Reader' timed out after 30s |
+| 2026-04-27 18:42 | Ledger | Critical | Failed to authenticate to data source after 3 retries |
+| 2026-04-27 11:03 | Atlas | Warning | Rate limit reached on Web Search; throttled for 60s |
+| 2026-04-26 22:17 | Scribe | Warning | Output truncated: response exceeded max_tokens |
+| 2026-04-26 08:55 | Beacon | Info | Calendar permissions refreshed successfully |
+| 2026-04-25 14:20 | Ledger | Critical | Unhandled exception in pipeline: NullReferenceError |
+
+`Ledger` appears 3× in the log — this explains its `Failing` status in §7.2.
+
+Each entry has a hardcoded full trace string for the View-detail modal. Build phase: produce realistic 5–8 line traces (function names, file paths, line numbers) matching each description.
 
 ---
 
-## 8. Acceptance Criteria
+## 8. Global Interactive Behaviors
 
-All 72 behaviors below must work correctly for the implementation to be considered complete.
+**8.1 Section switching.** Sidebar links call `showSection(name)`. The function: (a) adds `hidden` to all `<section>` elements with an `id` starting with `section-`, (b) removes `hidden` from `#section-{name}`, (c) updates the active link styling on the sidebar, (d) updates the section title in the top bar. The browser URL is **not** updated; `history.pushState` is not used.
 
-**Navigation**
-1. Clicking a sidebar nav item shows only that section's container; all other 5 are hidden.
-2. The active sidebar nav item displays an indigo background and left border; all others do not.
-3. The top bar page title updates to the clicked section's name on every nav click.
+**8.2 Action dropdowns.** All `⋮` triggers share one `toggleDropdown(id)` handler. Opening a dropdown closes any other currently open dropdown. A single `document` click listener closes the open dropdown when the click target is outside its menu (use `event.target.closest('.dropdown-menu')` to detect inside-clicks). Pressing Escape closes the open dropdown. There is at most one open dropdown at any time across the entire panel.
 
-**Dashboard**
-4. All 4 KPI cards display the correct hardcoded values and trend percentages.
-5. Trend badges display green (↑) for positive and red (↓) for negative trends.
-6. The bar chart renders exactly 7 labeled bars using only CSS height — no canvas, no SVG charting library, no JS charting library.
-7. Bar heights are proportional to hardcoded rental values (tallest bar = Fri at 63 rentals, 126px).
-8. All 8 activity feed items render with correct descriptions, timestamps, and colored dot icons.
-9. The Top Agents table renders all 5 rows with correct data and medal emojis for ranks 1–3.
+**8.3 Modals.** All modals share one `openModal(id)` / `closeModal(id)` pair. Opening a modal makes its backdrop visible (full-viewport, `bg-black/50 backdrop-blur-sm fixed inset-0`) and centers the panel inside it. Closing happens via three pathways: (a) the `×` close button inside the panel, (b) a click on the backdrop (use `event.stopPropagation` on the panel so clicks inside the panel do not close the modal), (c) the Escape key. When a modal is open, the page background must not scroll (`document.body.classList.add('overflow-hidden')`).
 
-**User Management — Filtering**
-10. Typing in the User Management search box immediately hides rows whose name and email do not match the substring.
-11. Selecting a role from the Role dropdown hides rows with a different role.
-12. Selecting a status from the Status dropdown hides rows with a different status.
-13. All three User Management filters apply simultaneously with AND logic.
-14. Clearing a filter restores previously hidden rows.
+**8.4 Collapsible skill lists (Agent Management).** Each row's expand control toggles a child element's max-height between `0` and a value tall enough to reveal all skills, animated via Tailwind's `transition-all duration-300 ease-in-out`. The chevron rotates 180° via `transition-transform duration-300`. State is held per row (e.g., a `data-expanded` attribute on the row).
 
-**User Management — Actions**
-15. Clicking Edit on any user row opens a modal pre-filled with that user's current data.
-16. Saving the Edit User modal updates the Name, Email, Role, and Status in that table row without a page reload.
-17. Clicking Suspend on an Active user changes the Status badge to "Suspended" and shows a toast.
-18. Clicking Activate on a Suspended user changes the Status badge to "Active" and shows a toast.
-19. The Suspend/Activate button is disabled for Pending users.
-20. Clicking Delete opens a confirmation modal; Cancel closes it with no change.
-21. Confirming Delete removes the row and shows a toast.
+**8.5 Dark mode toggle.** The button in the top bar toggles the `dark` class on `<html>`. The icon swaps from moon (light mode) to sun (dark mode). State lives in a single JS variable plus the class on `<html>`. Because the entire app is one HTML page, the chosen mode is automatically preserved across section switches.
 
-**User Management — Pagination**
-22. Only 10 user rows are visible per page.
-23. Next advances to the next page; Prev returns to the previous page.
-24. The "Showing X–Y of Z" label reflects the current page and filtered total.
-25. Any filter change resets the view to page 1.
+**8.6 Mark-as-resolved (Error Log).** Clicking applies `line-through text-slate-400` to the description cell, `opacity-60` to the row, and `disabled` + `cursor-not-allowed` to the row's `⋮` trigger. The row remains visible.
 
-**Agent Management**
-26. Clicking "Add New Agent" opens a modal with all form fields empty.
-27. Submitting the Add Agent form with all fields filled adds a new row at the top of the agent table.
-28. Submitting with any empty field shows inline validation errors and does not close the modal.
-29. Clicking View opens a read-only modal with description, skills pills, and all three performance stats.
-30. Clicking Edit opens a modal pre-filled with that agent's current data.
-31. Saving the Edit Agent modal updates that row in the table.
-32. Clicking Deactivate on an Active agent sets its badge to "Inactive" and shows a toast.
-33. Clicking Activate on an Inactive agent sets its badge to "Active" and shows a toast.
-34. The Deactivate/Activate button is disabled for agents with status "Under Review".
-35. Agent Management category and status dropdowns filter the table (AND'd with search).
+**8.7 Responsive behavior.** Sidebar collapses to icon-only at the `md` breakpoint downward (`< 768 px`). Tables become horizontally scrollable inside an `overflow-x-auto` wrapper at the same breakpoint. The metric grid drops from 4 → 2 → 1 columns at the `xl`, `sm`, and base breakpoints.
 
-**Skills**
-36. All 15 skill cards render in a 3-column grid with correct name, category, icon, description, and agent count.
-37. Typing in the Skills search box immediately hides cards whose name and category do not match.
-38. Clicking "Add Skill" opens an empty modal form.
-39. Submitting the Add Skill form appends a new card to the grid and shows a toast.
-40. Clicking Edit on a skill card opens a pre-populated modal.
-41. Saving the Edit Skill modal updates the card's displayed content in place.
-42. Clicking Delete on a skill card opens a confirmation modal.
-43. Confirming Delete removes the card from the grid and shows a toast.
+---
 
-**Agent Contracts**
-44. The Contracts search input filters by contract ID and renter name simultaneously.
-45. The Status dropdown filters to show only contracts matching the selected status.
-46. The Start From and Start To date inputs filter rows to only those whose start date falls within the range.
-47. All four Contract filters apply simultaneously with AND logic.
-48. Clicking View opens a read-only modal with all fields, payment breakdown (base fee, platform fee 10%, tax 7%, total), and the terms text.
-49. The Terminate button is not rendered for contracts with status "Completed" or "Cancelled".
-50. Clicking Terminate for an Active or Pending contract opens a confirmation modal.
-51. Confirming termination sets the contract's status badge to "Cancelled" and shows a toast.
+## 9. Acceptance Criteria
 
-**Error Log**
-52. The Message column is truncated to 40 characters with "…" appended for longer messages.
-53. The search input filters rows by both message text and agent name.
-54. The Severity dropdown filters rows to only the selected severity.
-55. The Status dropdown filters rows to only Resolved or Unresolved.
-56. The From date input filters rows to only those with a timestamp on or after the selected date.
-57. All four Error Log filters apply simultaneously with AND logic.
-58. Clicking View opens a modal with the full untruncated message, stack trace, and all metadata.
-59. Clicking "Mark Resolved" on an Unresolved error sets its badge to "Resolved" and shows a toast.
-60. Clicking "Mark Unresolved" on a Resolved error sets its badge to "Unresolved" and shows a toast.
-61. The toggle button in the error row and the same button in the View modal both update the same record.
-62. Clicking the Export button shows a toast "Export initiated — CSV will be ready shortly" (no file download).
+The prototype is **complete** when **all** of the following are verifiable:
 
-**Global Behaviors**
-63. All modals close when clicking the X button in the modal header.
-64. All modals close when clicking the Cancel button in the modal footer.
-65. All modals close when clicking the semi-transparent backdrop behind the modal.
-66. Toast notifications appear in the bottom-right corner of the viewport.
-67. Toast notifications automatically disappear after 2 seconds.
-68. Only one toast is visible at a time; a new toast replaces any currently visible toast.
-69. Zero network requests are made at any point — no `fetch`, `XMLHttpRequest`, or external image/font URLs other than the Tailwind CDN script.
-70. The only external resource loaded is the Tailwind CSS v4 CDN script tag.
-71. The layout does not break or overflow horizontally at a 1280px viewport width.
-72. All sidebar navigation, filters, modals, and actions function correctly without any page reload.
+1. `SPECS.md` was committed in a separate Git commit **before** the first commit that contains `index.html`. (Verifiable via `git log --oneline -- SPECS.md index.html`.)
+2. The repository contains exactly one HTML file (`index.html`) at the root, and no external CSS files.
+3. Tailwind CSS is loaded via the official CDN script tag and configured with `darkMode: 'class'`.
+4. The page renders six distinct sections — Dashboard, User Management, Agent Management, Skills, Agent Contracts, Error Log — accessible from a persistent sidebar.
+5. The sidebar shows an active-state indicator on the link of the currently visible section, and only one section is visible at a time.
+6. The Dashboard renders four metric cards in a responsive grid plus a dashed-border placeholder for the weekly chart below them.
+7. User Management renders a `<table>` with at least 5 hardcoded user rows (names from §7.1).
+8. Agent Management renders at least 4 agent rows (names from §7.2). Each agent's skill list is collapsed by default, expands with a visible CSS transition on click, and collapses on a second click.
+9. Skills renders at least 4 skill cards (names from §7.3) plus the in-panel explanation paragraph from §5.4.1.
+10. Agent Contracts renders a `<table>` with at least 4 contract rows (clients from §7.4).
+11. Error Log renders at least 6 entries (timestamps from §7.5), each with a color-coded type badge using the rose / amber / sky palette.
+12. Every list row across User Management, Agent Management, Skills, Agent Contracts, and Error Log has a working `⋮` action dropdown that opens on click, closes on a second click of the same trigger, and closes when the user clicks outside the menu area.
+13. "View detail" opens a modal in **at least four** sections (User Management, Skills, Agent Contracts, Error Log).
+14. Every modal closes via (a) its close button, (b) a click on the backdrop, **and** (c) pressing Escape.
+15. The Agent Management "Configure" action opens a modal containing the agent's system prompt inside an editable `<textarea>`.
+16. The dark/light mode toggle in the top bar adds/removes the `dark` class on `<html>`, switches both background and text across all sections in one click, and the chosen mode is preserved when switching between sections.
+17. Hardcoded data is consistent across sections: every agent name in §7.2 appears in at least one Error Log entry **and** at least one Agent Contract; every contract client (§7.4) maps to a user in §7.1 via email domain.
+18. Markup uses semantic tags — at minimum one each of `<header>`, `<nav>`, `<main>`, `<section>`, `<table>`. No inline `style` attributes anywhere in the file.
+19. The layout is usable at desktop (≥ 1280 px), small desktop (1024 px), and tablet (768 px) viewports without horizontal page scroll. Tables may scroll horizontally inside their container at narrow widths.
+20. Typography uses `Hanken Grotesk` (display) and `IBM Plex Sans` (body) loaded from Google Fonts. `Inter`, `Roboto`, and `Arial` do not appear anywhere in the markup or config.
 
-## 9. UI State Rules
-- Only one section is visible at a time.
-- Only one modal can be open at a time.
-- Only one toast can exist at a time.
-- All filters reset pagination to page 1.
-- All actions immediately update the UI without a page reload.
+---
 
-## 10. Empty States
-When a table or grid has no results after filtering:
-- Show a centered message: "No results found"
-- Show subtext: "Try adjusting your filters or search query"
-- Hide table body rows or cards that do not match the filters.
-- Keep table headers visible for table-based sections.
-
-## 11. UI Error Handling
-- Form validation errors show inline below inputs in red text.
-- Invalid submissions do not close modals.
-- Disabled buttons use `opacity-50 cursor-not-allowed`.
-- All required fields must be validated before submission.
-
-## 12. Performance Considerations
-- Tables re-render only visible rows.
-- Filtering operates on in-memory arrays.
-- Avoid unnecessary full-page re-renders.
-
-## 13. Suggested File Structure
-
-* index.html
-* app.js
-* styles.css (optional)
-
-## 14. Naming Conventions
-
-* Section IDs: section-{name}
-* Nav IDs: nav-{section}
-* Data arrays: camelCase (users, agents, skills, contracts, errors)
-* Functions: verb-based (renderUsers, filterAgents, openModal, closeModal)
-
-## 15. UI State Variables
-
-* currentSection (string)
-* currentPage (object per table)
-* activeFilters (object per section)
-* activeModalId (string or null)
-* toastVisible (boolean)
-
-## 16. Rendering Strategy
-
-* Each section must have a dedicated render function.
-* Tables re-render when:
-
-  * filters change
-  * pagination changes
-  * data is updated (add/edit/delete)
-* DOM updates should target only affected sections, not the entire page.
+*End of specification.*
