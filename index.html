@@ -1,0 +1,1873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgentHub Admin</title>
+  <meta name="description" content="AgentHub Admin Panel — a single-page prototype for managing AI agents, users, skills, and contracts." />
+  <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%234f46e5'/%3E%3Ctext x='16' y='23' font-family='sans-serif' font-size='20' font-weight='700' text-anchor='middle' fill='white'%3EA%3C/text%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700&family=IBM+Plex+Mono:wght@400&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"IBM Plex Sans"', 'sans-serif'],
+            display: ['"Hanken Grotesk"', 'sans-serif'],
+            mono: ['"IBM Plex Mono"', 'monospace']
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="font-sans bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 min-h-screen">
+
+  <!-- Drawer backdrop — mobile only -->
+  <div id="sidebar-backdrop" class="fixed inset-0 bg-black/40 z-30 hidden transition-opacity duration-200" aria-hidden="true"></div>
+
+  <!-- ============================================================
+       SIDEBAR
+       ============================================================ -->
+  <aside id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col z-40 -translate-x-full md:translate-x-0 transition-transform duration-200">
+
+    <!-- Wordmark -->
+    <div class="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex items-center">
+      <div class="hidden">
+        <span class="font-display font-bold text-white text-sm">A</span>
+      </div>
+      <div>
+        <h1 class="font-display font-bold text-xl text-slate-900 dark:text-slate-50">AgentHub</h1>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Admin</p>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 py-4 overflow-y-auto">
+      <ul class="space-y-1 px-3">
+
+        <!-- Dashboard (active by default) -->
+        <li>
+          <a href="#section-dashboard"
+             class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium border-l-2 border-indigo-600 dark:border-indigo-400 bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 transition-colors"
+             data-section="dashboard">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/>
+              <rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+            <span class="inline">Dashboard</span>
+          </a>
+        </li>
+
+        <!-- User Management -->
+        <li>
+          <a href="#section-user-management"
+             class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium border-l-2 border-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+             data-section="user-management">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            <span class="inline">User Management</span>
+          </a>
+        </li>
+
+        <!-- Agent Management -->
+        <li>
+          <a href="#section-agent-management"
+             class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium border-l-2 border-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+             data-section="agent-management">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="4" y="4" width="16" height="16" rx="2"/>
+              <rect x="9" y="9" width="6" height="6"/>
+              <path d="M15 2v2M9 2v2M2 9h2M2 15h2M22 9h-2M22 15h-2M15 22v-2M9 22v-2"/>
+            </svg>
+            <span class="inline">Agent Management</span>
+          </a>
+        </li>
+
+        <!-- Skills -->
+        <li>
+          <a href="#section-skills"
+             class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium border-l-2 border-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+             data-section="skills">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+            </svg>
+            <span class="inline">Skills</span>
+          </a>
+        </li>
+
+        <!-- Agent Contracts -->
+        <li>
+          <a href="#section-contracts"
+             class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium border-l-2 border-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+             data-section="contracts">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <line x1="10" y1="9" x2="8" y2="9"/>
+            </svg>
+            <span class="inline">Agent Contracts</span>
+          </a>
+        </li>
+
+        <!-- Error Log -->
+        <li>
+          <a href="#section-error-log"
+             class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium border-l-2 border-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+             data-section="error-log">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            <span class="inline">Error Log</span>
+          </a>
+        </li>
+
+      </ul>
+    </nav>
+
+    <!-- Footer: admin user -->
+    <div class="px-4 py-4 border-t border-slate-200 dark:border-slate-800 flex items-center gap-3">
+      <div class="w-8 h-8 rounded-full bg-indigo-600 dark:bg-indigo-500 flex items-center justify-center text-white text-xs font-semibold font-display flex-shrink-0">
+        SM
+      </div>
+      <div class="min-w-0">
+        <p class="text-sm font-medium text-slate-900 dark:text-slate-50 truncate">Settar Mengli</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 truncate">admin@agenthub.io</p>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ============================================================
+       MAIN COLUMN
+       ============================================================ -->
+  <div class="ml-0 md:ml-64 min-h-screen flex flex-col">
+
+    <!-- Top Bar -->
+    <header class="sticky top-0 z-10 h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2 px-4 md:px-8">
+      <button id="sidebar-open" class="md:hidden p-2.5 -ml-1.5 rounded-md text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex-shrink-0" aria-label="Open navigation">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <h2 id="top-bar-title" class="font-display text-lg font-semibold text-slate-900 dark:text-slate-50 flex-1 text-center md:text-left md:flex-none">Dashboard</h2>
+      <button id="dark-mode-toggle" class="p-2 rounded-md text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" aria-label="Toggle dark mode">
+        <!-- Moon: shown in light mode -->
+        <svg id="icon-moon" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+        <!-- Sun: shown in dark mode -->
+        <svg id="icon-sun" class="w-5 h-5 hidden" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/>
+          <line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/>
+          <line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+      </button>
+    </header>
+
+    <main class="flex-1">
+
+      <!-- =========================================================
+           SECTION: Dashboard
+           ========================================================= -->
+      <section id="section-dashboard" class="px-4 py-4 md:px-8 md:py-6">
+
+        <h2 class="font-display text-xl md:text-2xl font-semibold text-slate-900 dark:text-slate-50 mb-1">Dashboard</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Platform overview and key metrics at a glance.</p>
+
+        <!-- Metric cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+
+          <!-- Total Revenue -->
+          <article class="rounded-xl border border-slate-200 bg-white p-5 dark:bg-slate-900 dark:border-slate-800 shadow-sm dark:shadow-none">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 mb-3">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                <line x1="12" y1="1" x2="12" y2="23"/>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            </div>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Total Revenue</p>
+            <p class="font-display text-3xl font-bold text-slate-900 dark:text-slate-50 mt-0.5">$48,250</p>
+            <p class="text-sm text-emerald-600 dark:text-emerald-400 mt-1.5">+12.4% vs last month</p>
+          </article>
+
+          <!-- Discount Losses -->
+          <article class="rounded-xl border border-slate-200 bg-white p-5 dark:bg-slate-900 dark:border-slate-800 shadow-sm dark:shadow-none">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 mb-3">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/>
+                <polyline points="17 18 23 18 23 12"/>
+              </svg>
+            </div>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Discount Losses</p>
+            <p class="font-display text-3xl font-bold text-slate-900 dark:text-slate-50 mt-0.5">$3,180</p>
+            <p class="text-sm text-rose-600 dark:text-rose-400 mt-1.5">+8.1% vs last month</p>
+          </article>
+
+          <!-- Active Agents -->
+          <article class="rounded-xl border border-slate-200 bg-white p-5 dark:bg-slate-900 dark:border-slate-800 shadow-sm dark:shadow-none">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-400 mb-3">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="4" y="4" width="16" height="16" rx="2"/>
+                <rect x="9" y="9" width="6" height="6"/>
+                <path d="M15 2v2M9 2v2M2 9h2M2 15h2M22 9h-2M22 15h-2M15 22v-2M9 22v-2"/>
+              </svg>
+            </div>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Active Agents</p>
+            <p class="font-display text-3xl font-bold text-slate-900 dark:text-slate-50 mt-0.5">27</p>
+            <p class="text-sm text-indigo-600 dark:text-indigo-400 mt-1.5">+3 vs last month</p>
+          </article>
+
+          <!-- Failing Agents -->
+          <article class="rounded-xl border border-slate-200 bg-white p-5 dark:bg-slate-900 dark:border-slate-800 shadow-sm dark:shadow-none">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 mb-3">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            </div>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Failing Agents</p>
+            <p class="font-display text-3xl font-bold text-slate-900 dark:text-slate-50 mt-0.5">4</p>
+            <p class="text-sm text-amber-600 dark:text-amber-400 mt-1.5">+1 vs last month</p>
+          </article>
+
+        </div>
+
+        <!-- Chart placeholder -->
+        <div class="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl h-72 flex flex-col items-center justify-center">
+          <p class="font-display text-lg font-semibold text-slate-500 dark:text-slate-400">Weekly activity chart</p>
+          <p class="text-sm text-slate-400 dark:text-slate-500 mt-1">Wired to backend in Phase 2</p>
+        </div>
+
+      </section>
+
+      <!-- =========================================================
+           SECTION: User Management
+           ========================================================= -->
+      <section id="section-user-management" class="hidden px-4 py-4 md:px-8 md:py-6">
+
+        <h2 class="font-display text-xl md:text-2xl font-semibold text-slate-900 dark:text-slate-50 mb-1">User Management</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Manage user accounts, plans, and access levels.</p>
+
+        <!-- Mobile card list — shown only below md breakpoint -->
+        <div class="md:hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm dark:shadow-none divide-y divide-slate-100 dark:divide-slate-800">
+
+          <!-- Maya Chen -->
+          <div class="px-4 py-4 space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-medium text-sm text-slate-900 dark:text-slate-50">Maya Chen</span>
+              <div class="flex items-center gap-2">
+                <span class="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs px-2.5 py-0.5 rounded-full">Active</span>
+                <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Pro</span>
+              </div>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 truncate">maya.chen@northwind.com</p>
+            <button class="text-xs px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" data-action="view-user" data-user-id="1">View detail</button>
+          </div>
+
+          <!-- Daniel Ruiz -->
+          <div class="px-4 py-4 space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-medium text-sm text-slate-900 dark:text-slate-50">Daniel Ruiz</span>
+              <div class="flex items-center gap-2">
+                <span class="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs px-2.5 py-0.5 rounded-full">Active</span>
+                <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Enterprise</span>
+              </div>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 truncate">d.ruiz@helios-labs.io</p>
+            <button class="text-xs px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" data-action="view-user" data-user-id="2">View detail</button>
+          </div>
+
+          <!-- Priya Patel -->
+          <div class="px-4 py-4 space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-medium text-sm text-slate-900 dark:text-slate-50">Priya Patel</span>
+              <div class="flex items-center gap-2">
+                <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2.5 py-0.5 rounded-full">Inactive</span>
+                <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Free</span>
+              </div>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 truncate">priya@stellargrid.co</p>
+            <button class="text-xs px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" data-action="view-user" data-user-id="3">View detail</button>
+          </div>
+
+          <!-- Tomás Oliveira -->
+          <div class="px-4 py-4 space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-medium text-sm text-slate-900 dark:text-slate-50">Tomás Oliveira</span>
+              <div class="flex items-center gap-2">
+                <span class="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs px-2.5 py-0.5 rounded-full">Active</span>
+                <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Pro</span>
+              </div>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 truncate">tomas.o@bluepeak.dev</p>
+            <button class="text-xs px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" data-action="view-user" data-user-id="4">View detail</button>
+          </div>
+
+          <!-- Sarah Kim -->
+          <div class="px-4 py-4 space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-medium text-sm text-slate-900 dark:text-slate-50">Sarah Kim</span>
+              <div class="flex items-center gap-2">
+                <span class="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs px-2.5 py-0.5 rounded-full">Active</span>
+                <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Enterprise</span>
+              </div>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 truncate">s.kim@meridianfin.com</p>
+            <button class="text-xs px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" data-action="view-user" data-user-id="5">View detail</button>
+          </div>
+
+        </div>
+
+        <!-- Desktop table — hidden below md breakpoint -->
+        <div class="hidden md:block overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm dark:shadow-none">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-slate-200 dark:border-slate-800">
+                <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Name</th>
+                <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Email</th>
+                <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Plan</th>
+                <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Status</th>
+                <th class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+
+              <!-- Maya Chen — Pro, Active -->
+              <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                <td class="px-5 py-3.5 font-medium text-slate-900 dark:text-slate-50 whitespace-nowrap">Maya Chen</td>
+                <td class="px-5 py-3.5 text-slate-600 dark:text-slate-400 whitespace-nowrap">maya.chen@northwind.com</td>
+                <td class="px-5 py-3.5 whitespace-nowrap">
+                  <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Pro</span>
+                </td>
+                <td class="px-5 py-3.5 whitespace-nowrap">
+                  <span class="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs px-2.5 py-0.5 rounded-full">Active</span>
+                </td>
+                <td class="px-5 py-3.5 text-right">
+                  <div class="relative inline-block">
+                    <button class="dropdown-trigger p-2.5 md:p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" aria-haspopup="menu" aria-label="Actions for Maya Chen" data-dropdown-id="dropdown-user-1">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                      </svg>
+                    </button>
+                    <div id="dropdown-user-1" class="dropdown-menu hidden absolute right-0 mt-1 w-44 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-30">
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="view-user" data-user-id="1">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        View detail
+                      </button>
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Daniel Ruiz — Enterprise, Active -->
+              <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                <td class="px-5 py-3.5 font-medium text-slate-900 dark:text-slate-50 whitespace-nowrap">Daniel Ruiz</td>
+                <td class="px-5 py-3.5 text-slate-600 dark:text-slate-400 whitespace-nowrap">d.ruiz@helios-labs.io</td>
+                <td class="px-5 py-3.5 whitespace-nowrap">
+                  <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Enterprise</span>
+                </td>
+                <td class="px-5 py-3.5 whitespace-nowrap">
+                  <span class="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs px-2.5 py-0.5 rounded-full">Active</span>
+                </td>
+                <td class="px-5 py-3.5 text-right">
+                  <div class="relative inline-block">
+                    <button class="dropdown-trigger p-2.5 md:p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" aria-haspopup="menu" aria-label="Actions for Daniel Ruiz" data-dropdown-id="dropdown-user-2">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                      </svg>
+                    </button>
+                    <div id="dropdown-user-2" class="dropdown-menu hidden absolute right-0 mt-1 w-44 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-30">
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="view-user" data-user-id="2">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        View detail
+                      </button>
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Priya Patel — Free, Inactive -->
+              <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                <td class="px-5 py-3.5 font-medium text-slate-900 dark:text-slate-50 whitespace-nowrap">Priya Patel</td>
+                <td class="px-5 py-3.5 text-slate-600 dark:text-slate-400 whitespace-nowrap">priya@stellargrid.co</td>
+                <td class="px-5 py-3.5 whitespace-nowrap">
+                  <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Free</span>
+                </td>
+                <td class="px-5 py-3.5 whitespace-nowrap">
+                  <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2.5 py-0.5 rounded-full">Inactive</span>
+                </td>
+                <td class="px-5 py-3.5 text-right">
+                  <div class="relative inline-block">
+                    <button class="dropdown-trigger p-2.5 md:p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" aria-haspopup="menu" aria-label="Actions for Priya Patel" data-dropdown-id="dropdown-user-3">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                      </svg>
+                    </button>
+                    <div id="dropdown-user-3" class="dropdown-menu hidden absolute right-0 mt-1 w-44 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-30">
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="view-user" data-user-id="3">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        View detail
+                      </button>
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Tomás Oliveira — Pro, Active -->
+              <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                <td class="px-5 py-3.5 font-medium text-slate-900 dark:text-slate-50 whitespace-nowrap">Tomás Oliveira</td>
+                <td class="px-5 py-3.5 text-slate-600 dark:text-slate-400 whitespace-nowrap">tomas.o@bluepeak.dev</td>
+                <td class="px-5 py-3.5 whitespace-nowrap">
+                  <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Pro</span>
+                </td>
+                <td class="px-5 py-3.5 whitespace-nowrap">
+                  <span class="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs px-2.5 py-0.5 rounded-full">Active</span>
+                </td>
+                <td class="px-5 py-3.5 text-right">
+                  <div class="relative inline-block">
+                    <button class="dropdown-trigger p-2.5 md:p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" aria-haspopup="menu" aria-label="Actions for Tomás Oliveira" data-dropdown-id="dropdown-user-4">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                      </svg>
+                    </button>
+                    <div id="dropdown-user-4" class="dropdown-menu hidden absolute right-0 mt-1 w-44 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-30">
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="view-user" data-user-id="4">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        View detail
+                      </button>
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Sarah Kim — Enterprise, Active -->
+              <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                <td class="px-5 py-3.5 font-medium text-slate-900 dark:text-slate-50 whitespace-nowrap">Sarah Kim</td>
+                <td class="px-5 py-3.5 text-slate-600 dark:text-slate-400 whitespace-nowrap">s.kim@meridianfin.com</td>
+                <td class="px-5 py-3.5 whitespace-nowrap">
+                  <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Enterprise</span>
+                </td>
+                <td class="px-5 py-3.5 whitespace-nowrap">
+                  <span class="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs px-2.5 py-0.5 rounded-full">Active</span>
+                </td>
+                <td class="px-5 py-3.5 text-right">
+                  <div class="relative inline-block">
+                    <button class="dropdown-trigger p-2.5 md:p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" aria-haspopup="menu" aria-label="Actions for Sarah Kim" data-dropdown-id="dropdown-user-5">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                      </svg>
+                    </button>
+                    <div id="dropdown-user-5" class="dropdown-menu hidden absolute right-0 mt-1 w-44 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-30">
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="view-user" data-user-id="5">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        View detail
+                      </button>
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div><!-- /desktop table -->
+
+      </section>
+
+      <!-- =========================================================
+           SECTION: Agent Management  (Stage B)
+           ========================================================= -->
+      <section id="section-agent-management" class="hidden px-4 py-4 md:px-8 md:py-6">
+
+        <h2 class="font-display text-xl md:text-2xl font-semibold text-slate-900 dark:text-slate-50 mb-1">Agent Management</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Monitor and configure deployed agents and their system prompts.</p>
+
+        <div class="space-y-3">
+
+          <!-- Atlas — Active -->
+          <article class="rounded-xl border border-slate-200 bg-white p-4 dark:bg-slate-900 dark:border-slate-800 shadow-sm dark:shadow-none" data-expanded="false">
+            <div class="flex items-center gap-3">
+              <div class="flex-1 min-w-0 flex items-center gap-3 flex-wrap">
+                <span class="font-display text-lg font-semibold text-slate-900 dark:text-slate-50">Atlas</span>
+                <span class="text-sm text-slate-500 dark:text-slate-400">Daniel Ruiz</span>
+                <span class="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs px-2.5 py-0.5 rounded-full">Active</span>
+              </div>
+              <div class="flex items-center gap-1 flex-shrink-0">
+                <button class="p-2.5 md:p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" data-action="toggle-skills" aria-label="Toggle skills for Atlas">
+                  <svg class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="relative">
+                  <button class="dropdown-trigger p-2.5 md:p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" aria-haspopup="menu" aria-label="Actions for Atlas" data-dropdown-id="dropdown-agent-1">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                  </button>
+                  <div id="dropdown-agent-1" class="dropdown-menu hidden absolute right-0 mt-1 w-44 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-30">
+                    <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="configure-agent" data-agent-id="1">
+                      <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                      Configure
+                    </button>
+                    <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="max-h-0 overflow-hidden transition-all duration-300 ease-in-out">
+              <div class="flex flex-wrap gap-1.5 pt-3">
+                <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Web Search</span>
+                <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Document Reader</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Beacon — Active -->
+          <article class="rounded-xl border border-slate-200 bg-white p-4 dark:bg-slate-900 dark:border-slate-800 shadow-sm dark:shadow-none" data-expanded="false">
+            <div class="flex items-center gap-3">
+              <div class="flex-1 min-w-0 flex items-center gap-3 flex-wrap">
+                <span class="font-display text-lg font-semibold text-slate-900 dark:text-slate-50">Beacon</span>
+                <span class="text-sm text-slate-500 dark:text-slate-400">Maya Chen</span>
+                <span class="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs px-2.5 py-0.5 rounded-full">Active</span>
+              </div>
+              <div class="flex items-center gap-1 flex-shrink-0">
+                <button class="p-2.5 md:p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" data-action="toggle-skills" aria-label="Toggle skills for Beacon">
+                  <svg class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="relative">
+                  <button class="dropdown-trigger p-2.5 md:p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" aria-haspopup="menu" aria-label="Actions for Beacon" data-dropdown-id="dropdown-agent-2">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                  </button>
+                  <div id="dropdown-agent-2" class="dropdown-menu hidden absolute right-0 mt-1 w-44 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-30">
+                    <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="configure-agent" data-agent-id="2">
+                      <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                      Configure
+                    </button>
+                    <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="max-h-0 overflow-hidden transition-all duration-300 ease-in-out">
+              <div class="flex flex-wrap gap-1.5 pt-3">
+                <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Calendar Manager</span>
+                <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Email Composer</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Ledger — Failing -->
+          <article class="rounded-xl border border-slate-200 bg-white p-4 dark:bg-slate-900 dark:border-slate-800 shadow-sm dark:shadow-none" data-expanded="false">
+            <div class="flex items-center gap-3">
+              <div class="flex-1 min-w-0 flex items-center gap-3 flex-wrap">
+                <span class="font-display text-lg font-semibold text-slate-900 dark:text-slate-50">Ledger</span>
+                <span class="text-sm text-slate-500 dark:text-slate-400">Sarah Kim</span>
+                <span class="bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-xs px-2.5 py-0.5 rounded-full">Failing</span>
+              </div>
+              <div class="flex items-center gap-1 flex-shrink-0">
+                <button class="p-2.5 md:p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" data-action="toggle-skills" aria-label="Toggle skills for Ledger">
+                  <svg class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="relative">
+                  <button class="dropdown-trigger p-2.5 md:p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" aria-haspopup="menu" aria-label="Actions for Ledger" data-dropdown-id="dropdown-agent-3">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                  </button>
+                  <div id="dropdown-agent-3" class="dropdown-menu hidden absolute right-0 mt-1 w-44 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-30">
+                    <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="configure-agent" data-agent-id="3">
+                      <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                      Configure
+                    </button>
+                    <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="max-h-0 overflow-hidden transition-all duration-300 ease-in-out">
+              <div class="flex flex-wrap gap-1.5 pt-3">
+                <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Document Reader</span>
+                <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Web Search</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Scribe — Inactive -->
+          <article class="rounded-xl border border-slate-200 bg-white p-4 dark:bg-slate-900 dark:border-slate-800 shadow-sm dark:shadow-none" data-expanded="false">
+            <div class="flex items-center gap-3">
+              <div class="flex-1 min-w-0 flex items-center gap-3 flex-wrap">
+                <span class="font-display text-lg font-semibold text-slate-900 dark:text-slate-50">Scribe</span>
+                <span class="text-sm text-slate-500 dark:text-slate-400">Tomás Oliveira</span>
+                <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2.5 py-0.5 rounded-full">Inactive</span>
+              </div>
+              <div class="flex items-center gap-1 flex-shrink-0">
+                <button class="p-2.5 md:p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" data-action="toggle-skills" aria-label="Toggle skills for Scribe">
+                  <svg class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="relative">
+                  <button class="dropdown-trigger p-2.5 md:p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" aria-haspopup="menu" aria-label="Actions for Scribe" data-dropdown-id="dropdown-agent-4">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                  </button>
+                  <div id="dropdown-agent-4" class="dropdown-menu hidden absolute right-0 mt-1 w-44 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-30">
+                    <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="configure-agent" data-agent-id="4">
+                      <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                      Configure
+                    </button>
+                    <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="max-h-0 overflow-hidden transition-all duration-300 ease-in-out">
+              <div class="flex flex-wrap gap-1.5 pt-3">
+                <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Web Search</span>
+                <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Email Composer</span>
+              </div>
+            </div>
+          </article>
+
+        </div>
+
+      </section>
+
+      <!-- =========================================================
+           SECTION: Skills  (Stage B)
+           ========================================================= -->
+      <section id="section-skills" class="hidden px-4 py-4 md:px-8 md:py-6">
+
+        <h2 class="font-display text-xl md:text-2xl font-semibold text-slate-900 dark:text-slate-50 mb-1">Skills</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Browse and manage the reusable skill catalog.</p>
+
+        <p class="max-w-prose text-sm text-slate-500 dark:text-slate-400 mb-6">In AgentHub, a skill is a reusable capability — a pluggable behavior such as web browsing, document parsing, or calendar access — that can be attached to an agent at rental time. Skills are versioned independently and priced per use.</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          <!-- Web Search (skill-id=1) -->
+          <article class="rounded-xl border border-slate-200 bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm dark:shadow-none flex flex-col">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+              <h3 class="font-display text-lg font-semibold text-slate-900 dark:text-slate-50">Web Search</h3>
+              <div class="relative">
+                <button class="dropdown-trigger p-2.5 md:p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" aria-haspopup="menu" aria-label="Actions for Web Search" data-dropdown-id="dropdown-skill-1">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                </button>
+                <div id="dropdown-skill-1" class="dropdown-menu hidden absolute right-0 mt-1 w-44 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-30">
+                  <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="view-skill" data-skill-id="1">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    View detail
+                  </button>
+                  <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+            <p class="flex-1 px-5 py-4 text-sm text-slate-600 dark:text-slate-400">Browse the web and retrieve up-to-date information from public sources.</p>
+            <div class="px-5 py-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 flex-shrink-0"></span>
+              <span class="text-sm text-slate-500 dark:text-slate-400">Enabled on 3 agents</span>
+            </div>
+          </article>
+
+          <!-- Document Reader (skill-id=2) -->
+          <article class="rounded-xl border border-slate-200 bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm dark:shadow-none flex flex-col">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+              <h3 class="font-display text-lg font-semibold text-slate-900 dark:text-slate-50">Document Reader</h3>
+              <div class="relative">
+                <button class="dropdown-trigger p-2.5 md:p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" aria-haspopup="menu" aria-label="Actions for Document Reader" data-dropdown-id="dropdown-skill-2">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                </button>
+                <div id="dropdown-skill-2" class="dropdown-menu hidden absolute right-0 mt-1 w-44 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-30">
+                  <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="view-skill" data-skill-id="2">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    View detail
+                  </button>
+                  <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+            <p class="flex-1 px-5 py-4 text-sm text-slate-600 dark:text-slate-400">Parse and summarize PDFs, DOCX, and spreadsheets up to 200 pages.</p>
+            <div class="px-5 py-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 flex-shrink-0"></span>
+              <span class="text-sm text-slate-500 dark:text-slate-400">Enabled on 2 agents</span>
+            </div>
+          </article>
+
+          <!-- Calendar Manager (skill-id=3) -->
+          <article class="rounded-xl border border-slate-200 bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm dark:shadow-none flex flex-col">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+              <h3 class="font-display text-lg font-semibold text-slate-900 dark:text-slate-50">Calendar Manager</h3>
+              <div class="relative">
+                <button class="dropdown-trigger p-2.5 md:p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" aria-haspopup="menu" aria-label="Actions for Calendar Manager" data-dropdown-id="dropdown-skill-3">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                </button>
+                <div id="dropdown-skill-3" class="dropdown-menu hidden absolute right-0 mt-1 w-44 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-30">
+                  <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="view-skill" data-skill-id="3">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    View detail
+                  </button>
+                  <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+            <p class="flex-1 px-5 py-4 text-sm text-slate-600 dark:text-slate-400">Read and create events on connected Google and Outlook calendars.</p>
+            <div class="px-5 py-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 flex-shrink-0"></span>
+              <span class="text-sm text-slate-500 dark:text-slate-400">Enabled on 1 agent</span>
+            </div>
+          </article>
+
+          <!-- Email Composer (skill-id=4) -->
+          <article class="rounded-xl border border-slate-200 bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm dark:shadow-none flex flex-col">
+            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+              <h3 class="font-display text-lg font-semibold text-slate-900 dark:text-slate-50">Email Composer</h3>
+              <div class="relative">
+                <button class="dropdown-trigger p-2.5 md:p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" aria-haspopup="menu" aria-label="Actions for Email Composer" data-dropdown-id="dropdown-skill-4">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                </button>
+                <div id="dropdown-skill-4" class="dropdown-menu hidden absolute right-0 mt-1 w-44 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-30">
+                  <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="view-skill" data-skill-id="4">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    View detail
+                  </button>
+                  <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+            <p class="flex-1 px-5 py-4 text-sm text-slate-600 dark:text-slate-400">Draft and review emails based on conversational context and tone hints.</p>
+            <div class="px-5 py-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 flex-shrink-0"></span>
+              <span class="text-sm text-slate-500 dark:text-slate-400">Enabled on 2 agents</span>
+            </div>
+          </article>
+
+        </div>
+
+      </section>
+
+      <!-- =========================================================
+           SECTION: Agent Contracts  (Stage B)
+           ========================================================= -->
+      <section id="section-contracts" class="hidden px-4 py-4 md:px-8 md:py-6">
+
+        <h2 class="font-display text-xl md:text-2xl font-semibold text-slate-900 dark:text-slate-50 mb-1">Agent Contracts</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Review active and past agent rental agreements.</p>
+
+        <!-- Mobile card list -->
+        <div class="md:hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm dark:shadow-none divide-y divide-slate-100 dark:divide-slate-800">
+
+          <!-- Helios Labs / Atlas -->
+          <div class="px-4 py-4 space-y-2">
+            <div class="flex items-start justify-between gap-2">
+              <span class="font-medium text-sm text-slate-900 dark:text-slate-50">Helios Labs</span>
+              <span class="font-medium text-sm tabular-nums text-slate-900 dark:text-slate-50 flex-shrink-0">$3,200</span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Atlas · 2025-11-01 → 2026-05-01</p>
+            <div class="flex flex-wrap gap-1">
+              <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Web Search</span>
+              <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Document Reader</span>
+            </div>
+            <button class="text-xs px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" data-action="view-contract" data-contract-id="1">View detail</button>
+          </div>
+
+          <!-- Northwind Logistics / Beacon -->
+          <div class="px-4 py-4 space-y-2">
+            <div class="flex items-start justify-between gap-2">
+              <span class="font-medium text-sm text-slate-900 dark:text-slate-50">Northwind Logistics</span>
+              <span class="font-medium text-sm tabular-nums text-slate-900 dark:text-slate-50 flex-shrink-0">$2,400</span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Beacon · 2026-01-15 → 2026-07-15</p>
+            <div class="flex flex-wrap gap-1">
+              <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Calendar Manager</span>
+              <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Email Composer</span>
+            </div>
+            <button class="text-xs px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" data-action="view-contract" data-contract-id="2">View detail</button>
+          </div>
+
+          <!-- Meridian Financial / Ledger -->
+          <div class="px-4 py-4 space-y-2">
+            <div class="flex items-start justify-between gap-2">
+              <span class="font-medium text-sm text-slate-900 dark:text-slate-50">Meridian Financial</span>
+              <span class="font-medium text-sm tabular-nums text-slate-900 dark:text-slate-50 flex-shrink-0">$4,100</span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Ledger · 2025-09-10 → 2026-03-10</p>
+            <div class="flex flex-wrap gap-1">
+              <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Document Reader</span>
+              <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Web Search</span>
+            </div>
+            <button class="text-xs px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" data-action="view-contract" data-contract-id="3">View detail</button>
+          </div>
+
+          <!-- BluePeak Studios / Scribe -->
+          <div class="px-4 py-4 space-y-2">
+            <div class="flex items-start justify-between gap-2">
+              <span class="font-medium text-sm text-slate-900 dark:text-slate-50">BluePeak Studios</span>
+              <span class="font-medium text-sm tabular-nums text-slate-900 dark:text-slate-50 flex-shrink-0">$1,950</span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Scribe · 2026-02-20 → 2026-08-20</p>
+            <div class="flex flex-wrap gap-1">
+              <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Web Search</span>
+              <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Email Composer</span>
+            </div>
+            <button class="text-xs px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" data-action="view-contract" data-contract-id="4">View detail</button>
+          </div>
+
+        </div>
+
+        <!-- Desktop table -->
+        <div class="hidden md:block overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm dark:shadow-none">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-slate-200 dark:border-slate-800">
+                <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Client</th>
+                <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Rented Agent</th>
+                <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Skills</th>
+                <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Start</th>
+                <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">End</th>
+                <th class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Amount</th>
+                <th class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+
+              <!-- Helios Labs / Atlas — Active -->
+              <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                <td class="px-5 py-3.5 font-medium text-slate-900 dark:text-slate-50 whitespace-nowrap">Helios Labs</td>
+                <td class="px-5 py-3.5 text-slate-700 dark:text-slate-300 whitespace-nowrap">Atlas</td>
+                <td class="px-5 py-3.5">
+                  <div class="flex flex-wrap gap-1">
+                    <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Web Search</span>
+                    <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Document Reader</span>
+                  </div>
+                </td>
+                <td class="px-5 py-3.5 text-slate-700 dark:text-slate-300 whitespace-nowrap">2025-11-01</td>
+                <td class="px-5 py-3.5 text-slate-700 dark:text-slate-300 whitespace-nowrap">2026-05-01</td>
+                <td class="px-5 py-3.5 text-right font-medium tabular-nums text-slate-900 dark:text-slate-50 whitespace-nowrap">$3,200</td>
+                <td class="px-5 py-3.5 text-right">
+                  <div class="relative inline-block">
+                    <button class="dropdown-trigger p-2.5 md:p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" aria-haspopup="menu" aria-label="Actions for Helios Labs contract" data-dropdown-id="dropdown-contract-1">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                    </button>
+                    <div id="dropdown-contract-1" class="dropdown-menu hidden absolute right-0 mt-1 w-44 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-30">
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="view-contract" data-contract-id="1">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        View detail
+                      </button>
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Northwind Logistics / Beacon — Active -->
+              <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                <td class="px-5 py-3.5 font-medium text-slate-900 dark:text-slate-50 whitespace-nowrap">Northwind Logistics</td>
+                <td class="px-5 py-3.5 text-slate-700 dark:text-slate-300 whitespace-nowrap">Beacon</td>
+                <td class="px-5 py-3.5">
+                  <div class="flex flex-wrap gap-1">
+                    <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Calendar Manager</span>
+                    <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Email Composer</span>
+                  </div>
+                </td>
+                <td class="px-5 py-3.5 text-slate-700 dark:text-slate-300 whitespace-nowrap">2026-01-15</td>
+                <td class="px-5 py-3.5 text-slate-700 dark:text-slate-300 whitespace-nowrap">2026-07-15</td>
+                <td class="px-5 py-3.5 text-right font-medium tabular-nums text-slate-900 dark:text-slate-50 whitespace-nowrap">$2,400</td>
+                <td class="px-5 py-3.5 text-right">
+                  <div class="relative inline-block">
+                    <button class="dropdown-trigger p-2.5 md:p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" aria-haspopup="menu" aria-label="Actions for Northwind Logistics contract" data-dropdown-id="dropdown-contract-2">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                    </button>
+                    <div id="dropdown-contract-2" class="dropdown-menu hidden absolute right-0 mt-1 w-44 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-30">
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="view-contract" data-contract-id="2">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        View detail
+                      </button>
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Meridian Financial / Ledger — Past (ended 2026-03-10, dates muted) -->
+              <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                <td class="px-5 py-3.5 font-medium text-slate-900 dark:text-slate-50 whitespace-nowrap">Meridian Financial</td>
+                <td class="px-5 py-3.5 text-slate-700 dark:text-slate-300 whitespace-nowrap">Ledger</td>
+                <td class="px-5 py-3.5">
+                  <div class="flex flex-wrap gap-1">
+                    <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Document Reader</span>
+                    <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Web Search</span>
+                  </div>
+                </td>
+                <td class="px-5 py-3.5 text-slate-400 whitespace-nowrap">2025-09-10</td>
+                <td class="px-5 py-3.5 text-slate-400 whitespace-nowrap">2026-03-10</td>
+                <td class="px-5 py-3.5 text-right font-medium tabular-nums text-slate-900 dark:text-slate-50 whitespace-nowrap">$4,100</td>
+                <td class="px-5 py-3.5 text-right">
+                  <div class="relative inline-block">
+                    <button class="dropdown-trigger p-2.5 md:p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" aria-haspopup="menu" aria-label="Actions for Meridian Financial contract" data-dropdown-id="dropdown-contract-3">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                    </button>
+                    <div id="dropdown-contract-3" class="dropdown-menu hidden absolute right-0 mt-1 w-44 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-30">
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="view-contract" data-contract-id="3">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        View detail
+                      </button>
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- BluePeak Studios / Scribe — Active -->
+              <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                <td class="px-5 py-3.5 font-medium text-slate-900 dark:text-slate-50 whitespace-nowrap">BluePeak Studios</td>
+                <td class="px-5 py-3.5 text-slate-700 dark:text-slate-300 whitespace-nowrap">Scribe</td>
+                <td class="px-5 py-3.5">
+                  <div class="flex flex-wrap gap-1">
+                    <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Web Search</span>
+                    <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs px-2 py-0.5 rounded-md">Email Composer</span>
+                  </div>
+                </td>
+                <td class="px-5 py-3.5 text-slate-700 dark:text-slate-300 whitespace-nowrap">2026-02-20</td>
+                <td class="px-5 py-3.5 text-slate-700 dark:text-slate-300 whitespace-nowrap">2026-08-20</td>
+                <td class="px-5 py-3.5 text-right font-medium tabular-nums text-slate-900 dark:text-slate-50 whitespace-nowrap">$1,950</td>
+                <td class="px-5 py-3.5 text-right">
+                  <div class="relative inline-block">
+                    <button class="dropdown-trigger p-2.5 md:p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" aria-haspopup="menu" aria-label="Actions for BluePeak Studios contract" data-dropdown-id="dropdown-contract-4">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                    </button>
+                    <div id="dropdown-contract-4" class="dropdown-menu hidden absolute right-0 mt-1 w-44 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-30">
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="view-contract" data-contract-id="4">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        View detail
+                      </button>
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div><!-- /desktop table -->
+
+      </section>
+
+      <!-- =========================================================
+           SECTION: Error Log  (Stage C)
+           ========================================================= -->
+      <section id="section-error-log" class="hidden px-4 py-4 md:px-8 md:py-6">
+
+        <h2 class="font-display text-xl md:text-2xl font-semibold text-slate-900 dark:text-slate-50 mb-1">Error Log</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Runtime errors and warnings across all active agents.</p>
+
+        <!-- Mobile card list -->
+        <div class="md:hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm dark:shadow-none divide-y divide-slate-100 dark:divide-slate-800">
+
+          <!-- Error 1 — Critical: Ledger -->
+          <div id="error-row-mobile-1" class="px-4 py-4 space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-mono text-xs text-slate-500 dark:text-slate-400">2026-04-28 09:14</span>
+              <span class="bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-xs px-2 py-0.5 rounded-md font-medium">Critical</span>
+            </div>
+            <p class="text-xs font-medium text-slate-700 dark:text-slate-300">Ledger</p>
+            <p id="error-desc-mobile-1" class="text-sm text-slate-700 dark:text-slate-300 line-clamp-2">Skill 'Document Reader' timed out after 30s</p>
+            <div class="flex gap-2">
+              <button class="text-xs px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" data-action="view-error" data-error-id="1">View detail</button>
+              <button class="text-xs px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" data-action="mark-resolved" data-error-id="1">Mark resolved</button>
+            </div>
+          </div>
+
+          <!-- Error 2 — Critical: Ledger -->
+          <div id="error-row-mobile-2" class="px-4 py-4 space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-mono text-xs text-slate-500 dark:text-slate-400">2026-04-27 18:42</span>
+              <span class="bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-xs px-2 py-0.5 rounded-md font-medium">Critical</span>
+            </div>
+            <p class="text-xs font-medium text-slate-700 dark:text-slate-300">Ledger</p>
+            <p id="error-desc-mobile-2" class="text-sm text-slate-700 dark:text-slate-300 line-clamp-2">Failed to authenticate to data source after 3 retries</p>
+            <div class="flex gap-2">
+              <button class="text-xs px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" data-action="view-error" data-error-id="2">View detail</button>
+              <button class="text-xs px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" data-action="mark-resolved" data-error-id="2">Mark resolved</button>
+            </div>
+          </div>
+
+          <!-- Error 3 — Warning: Atlas -->
+          <div id="error-row-mobile-3" class="px-4 py-4 space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-mono text-xs text-slate-500 dark:text-slate-400">2026-04-27 11:03</span>
+              <span class="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-xs px-2 py-0.5 rounded-md font-medium">Warning</span>
+            </div>
+            <p class="text-xs font-medium text-slate-700 dark:text-slate-300">Atlas</p>
+            <p id="error-desc-mobile-3" class="text-sm text-slate-700 dark:text-slate-300 line-clamp-2">Rate limit reached on Web Search; throttled for 60s</p>
+            <div class="flex gap-2">
+              <button class="text-xs px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" data-action="view-error" data-error-id="3">View detail</button>
+              <button class="text-xs px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" data-action="mark-resolved" data-error-id="3">Mark resolved</button>
+            </div>
+          </div>
+
+          <!-- Error 4 — Warning: Scribe -->
+          <div id="error-row-mobile-4" class="px-4 py-4 space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-mono text-xs text-slate-500 dark:text-slate-400">2026-04-26 22:17</span>
+              <span class="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-xs px-2 py-0.5 rounded-md font-medium">Warning</span>
+            </div>
+            <p class="text-xs font-medium text-slate-700 dark:text-slate-300">Scribe</p>
+            <p id="error-desc-mobile-4" class="text-sm text-slate-700 dark:text-slate-300 line-clamp-2">Output truncated: response exceeded max_tokens</p>
+            <div class="flex gap-2">
+              <button class="text-xs px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" data-action="view-error" data-error-id="4">View detail</button>
+              <button class="text-xs px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" data-action="mark-resolved" data-error-id="4">Mark resolved</button>
+            </div>
+          </div>
+
+          <!-- Error 5 — Info: Beacon -->
+          <div id="error-row-mobile-5" class="px-4 py-4 space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-mono text-xs text-slate-500 dark:text-slate-400">2026-04-26 08:55</span>
+              <span class="bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300 text-xs px-2 py-0.5 rounded-md font-medium">Info</span>
+            </div>
+            <p class="text-xs font-medium text-slate-700 dark:text-slate-300">Beacon</p>
+            <p id="error-desc-mobile-5" class="text-sm text-slate-700 dark:text-slate-300 line-clamp-2">Calendar permissions refreshed successfully</p>
+            <div class="flex gap-2">
+              <button class="text-xs px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" data-action="view-error" data-error-id="5">View detail</button>
+              <button class="text-xs px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" data-action="mark-resolved" data-error-id="5">Mark resolved</button>
+            </div>
+          </div>
+
+          <!-- Error 6 — Critical: Ledger -->
+          <div id="error-row-mobile-6" class="px-4 py-4 space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-mono text-xs text-slate-500 dark:text-slate-400">2026-04-25 14:20</span>
+              <span class="bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-xs px-2 py-0.5 rounded-md font-medium">Critical</span>
+            </div>
+            <p class="text-xs font-medium text-slate-700 dark:text-slate-300">Ledger</p>
+            <p id="error-desc-mobile-6" class="text-sm text-slate-700 dark:text-slate-300 line-clamp-2">Unhandled exception in pipeline: NullReferenceError</p>
+            <div class="flex gap-2">
+              <button class="text-xs px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" data-action="view-error" data-error-id="6">View detail</button>
+              <button class="text-xs px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" data-action="mark-resolved" data-error-id="6">Mark resolved</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Desktop table -->
+        <div class="hidden md:block overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm dark:shadow-none">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-slate-200 dark:border-slate-800">
+                <th class="text-left px-4 py-3 text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Timestamp</th>
+                <th class="text-left px-4 py-3 text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Agent</th>
+                <th class="text-left px-4 py-3 text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Type</th>
+                <th class="text-left px-4 py-3 text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Description</th>
+                <th class="text-left px-4 py-3 text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+
+              <!-- Error row 1 — Critical -->
+              <tr id="error-row-1" class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                <td class="px-4 py-3 font-mono text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">2026-04-28 09:14</td>
+                <td class="px-4 py-3 text-sm text-slate-700 dark:text-slate-300 whitespace-nowrap">Ledger</td>
+                <td class="px-4 py-3">
+                  <span class="bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-xs px-2 py-0.5 rounded-md font-medium">Critical</span>
+                </td>
+                <td id="error-desc-1" class="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">Skill 'Document Reader' timed out after 30s</td>
+                <td class="px-4 py-3 whitespace-nowrap">
+                  <div class="relative">
+                    <button class="dropdown-trigger p-2.5 md:p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" aria-haspopup="menu" aria-label="Actions for error 1" data-dropdown-id="dropdown-error-1">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                    </button>
+                    <div id="dropdown-error-1" class="dropdown-menu hidden absolute right-0 mt-1 w-48 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-30">
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="view-error" data-error-id="1">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        View detail
+                      </button>
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="mark-resolved" data-error-id="1">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                        Mark as resolved
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Error row 2 — Critical -->
+              <tr id="error-row-2" class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                <td class="px-4 py-3 font-mono text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">2026-04-27 18:42</td>
+                <td class="px-4 py-3 text-sm text-slate-700 dark:text-slate-300 whitespace-nowrap">Ledger</td>
+                <td class="px-4 py-3">
+                  <span class="bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-xs px-2 py-0.5 rounded-md font-medium">Critical</span>
+                </td>
+                <td id="error-desc-2" class="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">Failed to authenticate to data source after 3 retries</td>
+                <td class="px-4 py-3 whitespace-nowrap">
+                  <div class="relative">
+                    <button class="dropdown-trigger p-2.5 md:p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" aria-haspopup="menu" aria-label="Actions for error 2" data-dropdown-id="dropdown-error-2">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                    </button>
+                    <div id="dropdown-error-2" class="dropdown-menu hidden absolute right-0 mt-1 w-48 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-30">
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="view-error" data-error-id="2">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        View detail
+                      </button>
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="mark-resolved" data-error-id="2">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                        Mark as resolved
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Error row 3 — Warning -->
+              <tr id="error-row-3" class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                <td class="px-4 py-3 font-mono text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">2026-04-27 11:03</td>
+                <td class="px-4 py-3 text-sm text-slate-700 dark:text-slate-300 whitespace-nowrap">Atlas</td>
+                <td class="px-4 py-3">
+                  <span class="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-xs px-2 py-0.5 rounded-md font-medium">Warning</span>
+                </td>
+                <td id="error-desc-3" class="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">Rate limit reached on Web Search; throttled for 60s</td>
+                <td class="px-4 py-3 whitespace-nowrap">
+                  <div class="relative">
+                    <button class="dropdown-trigger p-2.5 md:p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" aria-haspopup="menu" aria-label="Actions for error 3" data-dropdown-id="dropdown-error-3">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                    </button>
+                    <div id="dropdown-error-3" class="dropdown-menu hidden absolute right-0 mt-1 w-48 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-30">
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="view-error" data-error-id="3">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        View detail
+                      </button>
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="mark-resolved" data-error-id="3">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                        Mark as resolved
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Error row 4 — Warning -->
+              <tr id="error-row-4" class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                <td class="px-4 py-3 font-mono text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">2026-04-26 22:17</td>
+                <td class="px-4 py-3 text-sm text-slate-700 dark:text-slate-300 whitespace-nowrap">Scribe</td>
+                <td class="px-4 py-3">
+                  <span class="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-xs px-2 py-0.5 rounded-md font-medium">Warning</span>
+                </td>
+                <td id="error-desc-4" class="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">Output truncated: response exceeded max_tokens</td>
+                <td class="px-4 py-3 whitespace-nowrap">
+                  <div class="relative">
+                    <button class="dropdown-trigger p-2.5 md:p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" aria-haspopup="menu" aria-label="Actions for error 4" data-dropdown-id="dropdown-error-4">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                    </button>
+                    <div id="dropdown-error-4" class="dropdown-menu hidden absolute right-0 mt-1 w-48 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-30">
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="view-error" data-error-id="4">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        View detail
+                      </button>
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="mark-resolved" data-error-id="4">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                        Mark as resolved
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Error row 5 — Info -->
+              <tr id="error-row-5" class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                <td class="px-4 py-3 font-mono text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">2026-04-26 08:55</td>
+                <td class="px-4 py-3 text-sm text-slate-700 dark:text-slate-300 whitespace-nowrap">Beacon</td>
+                <td class="px-4 py-3">
+                  <span class="bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300 text-xs px-2 py-0.5 rounded-md font-medium">Info</span>
+                </td>
+                <td id="error-desc-5" class="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">Calendar permissions refreshed successfully</td>
+                <td class="px-4 py-3 whitespace-nowrap">
+                  <div class="relative">
+                    <button class="dropdown-trigger p-2.5 md:p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" aria-haspopup="menu" aria-label="Actions for error 5" data-dropdown-id="dropdown-error-5">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                    </button>
+                    <div id="dropdown-error-5" class="dropdown-menu hidden absolute right-0 mt-1 w-48 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-30">
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="view-error" data-error-id="5">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        View detail
+                      </button>
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="mark-resolved" data-error-id="5">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                        Mark as resolved
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Error row 6 — Critical -->
+              <tr id="error-row-6" class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                <td class="px-4 py-3 font-mono text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">2026-04-25 14:20</td>
+                <td class="px-4 py-3 text-sm text-slate-700 dark:text-slate-300 whitespace-nowrap">Ledger</td>
+                <td class="px-4 py-3">
+                  <span class="bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 text-xs px-2 py-0.5 rounded-md font-medium">Critical</span>
+                </td>
+                <td id="error-desc-6" class="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">Unhandled exception in pipeline: NullReferenceError</td>
+                <td class="px-4 py-3 whitespace-nowrap">
+                  <div class="relative">
+                    <button class="dropdown-trigger p-2.5 md:p-1.5 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" aria-haspopup="menu" aria-label="Actions for error 6" data-dropdown-id="dropdown-error-6">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                    </button>
+                    <div id="dropdown-error-6" class="dropdown-menu hidden absolute right-0 mt-1 w-48 bg-white dark:bg-slate-900 rounded-md shadow-lg border border-slate-200 dark:border-slate-800 py-1 z-30">
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="view-error" data-error-id="6">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        View detail
+                      </button>
+                      <button class="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" data-action="mark-resolved" data-error-id="6">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                        Mark as resolved
+                      </button>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div><!-- /desktop table -->
+
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ============================================================
+       MODAL: User Detail
+       ============================================================ -->
+  <div id="modal-user-detail" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 sm:p-4">
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" id="modal-user-detail-backdrop"></div>
+    <div id="modal-user-detail-panel" class="relative bg-white dark:bg-slate-900 rounded-t-xl sm:rounded-xl shadow-2xl dark:border dark:border-slate-700 w-full max-w-md mx-auto p-4 sm:p-6">
+      <div class="flex items-start justify-between mb-5">
+        <h3 id="user-modal-name" class="font-display text-xl font-semibold text-slate-900 dark:text-slate-50">User Name</h3>
+        <button class="close-modal-btn text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-2 rounded-md -mt-1 -mr-1 transition-colors" data-modal="modal-user-detail" aria-label="Close">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <dl class="space-y-3.5">
+        <div class="flex gap-4">
+          <dt class="text-sm text-slate-500 dark:text-slate-400 w-28 flex-shrink-0">Name</dt>
+          <dd id="user-modal-field-name" class="text-sm font-medium text-slate-900 dark:text-slate-50">—</dd>
+        </div>
+        <div class="flex gap-4">
+          <dt class="text-sm text-slate-500 dark:text-slate-400 w-28 flex-shrink-0">Email</dt>
+          <dd id="user-modal-field-email" class="text-sm font-medium text-slate-900 dark:text-slate-50">—</dd>
+        </div>
+        <div class="flex gap-4">
+          <dt class="text-sm text-slate-500 dark:text-slate-400 w-28 flex-shrink-0">Plan</dt>
+          <dd id="user-modal-field-plan" class="text-sm font-medium text-slate-900 dark:text-slate-50">—</dd>
+        </div>
+        <div class="flex gap-4">
+          <dt class="text-sm text-slate-500 dark:text-slate-400 w-28 flex-shrink-0">Status</dt>
+          <dd id="user-modal-field-status" class="text-sm font-medium text-slate-900 dark:text-slate-50">—</dd>
+        </div>
+        <div class="flex gap-4">
+          <dt class="text-sm text-slate-500 dark:text-slate-400 w-28 flex-shrink-0">Joined</dt>
+          <dd id="user-modal-field-joined" class="text-sm font-medium text-slate-900 dark:text-slate-50">—</dd>
+        </div>
+        <div class="flex gap-4">
+          <dt class="text-sm text-slate-500 dark:text-slate-400 w-28 flex-shrink-0">Last active</dt>
+          <dd id="user-modal-field-lastactive" class="text-sm font-medium text-slate-900 dark:text-slate-50">—</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: Agent System Prompt
+       ============================================================ -->
+  <div id="modal-agent-prompt" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 sm:p-4">
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" id="modal-agent-prompt-backdrop"></div>
+    <div id="modal-agent-prompt-panel" class="relative bg-white dark:bg-slate-900 rounded-t-xl sm:rounded-xl shadow-2xl dark:border dark:border-slate-700 w-full max-w-lg mx-auto p-4 sm:p-6">
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          <h3 id="agent-modal-name" class="font-display text-xl font-semibold text-slate-900 dark:text-slate-50">Agent Name</h3>
+          <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">System prompt</p>
+        </div>
+        <button class="close-modal-btn text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-2 rounded-md -mt-1 -mr-1 transition-colors" data-modal="modal-agent-prompt" aria-label="Close">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <textarea id="agent-modal-prompt-text" rows="10" class="w-full font-mono text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md px-3 py-2.5 text-slate-700 dark:text-slate-300 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"></textarea>
+      <div class="mt-4 flex justify-end">
+        <button class="close-modal-btn px-4 py-2 rounded-md bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400 text-white text-sm font-medium transition-colors" data-modal="modal-agent-prompt">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: Skill Detail
+       ============================================================ -->
+  <div id="modal-skill-detail" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 sm:p-4">
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" id="modal-skill-detail-backdrop"></div>
+    <div id="modal-skill-detail-panel" class="relative bg-white dark:bg-slate-900 rounded-t-xl sm:rounded-xl shadow-2xl dark:border dark:border-slate-700 w-full max-w-md mx-auto p-4 sm:p-6">
+      <div class="flex items-start justify-between mb-5">
+        <h3 id="skill-modal-name" class="font-display text-xl font-semibold text-slate-900 dark:text-slate-50">Skill Name</h3>
+        <button class="close-modal-btn text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-2 rounded-md -mt-1 -mr-1 transition-colors" data-modal="modal-skill-detail" aria-label="Close">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div id="skill-modal-body" class="space-y-4">
+        <p id="skill-modal-description" class="text-sm text-slate-700 dark:text-slate-300">—</p>
+        <dl class="grid grid-cols-2 gap-x-4 gap-y-3">
+          <div>
+            <dt class="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-0.5">Version</dt>
+            <dd id="skill-modal-version" class="text-sm font-medium text-slate-900 dark:text-slate-50">—</dd>
+          </div>
+          <div>
+            <dt class="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-0.5">Price</dt>
+            <dd id="skill-modal-price" class="text-sm font-medium text-slate-900 dark:text-slate-50">—</dd>
+          </div>
+        </dl>
+        <div>
+          <p class="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Enabled on</p>
+          <ul id="skill-modal-agents" class="space-y-1 list-disc list-inside text-sm text-slate-700 dark:text-slate-300"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: Contract Detail
+       ============================================================ -->
+  <div id="modal-contract-detail" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 sm:p-4">
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" id="modal-contract-detail-backdrop"></div>
+    <div id="modal-contract-detail-panel" class="relative bg-white dark:bg-slate-900 rounded-t-xl sm:rounded-xl shadow-2xl dark:border dark:border-slate-700 w-full max-w-lg mx-auto p-4 sm:p-6">
+      <div class="flex items-start justify-between mb-5">
+        <h3 id="contract-modal-title" class="font-display text-xl font-semibold text-slate-900 dark:text-slate-50">Contract Detail</h3>
+        <button class="close-modal-btn text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-2 rounded-md -mt-1 -mr-1 transition-colors" data-modal="modal-contract-detail" aria-label="Close">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div id="contract-modal-body" class="space-y-4">
+        <dl class="grid grid-cols-2 gap-x-4 gap-y-3">
+          <div>
+            <dt class="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-0.5">Client</dt>
+            <dd id="contract-modal-client" class="text-sm font-medium text-slate-900 dark:text-slate-50">—</dd>
+          </div>
+          <div>
+            <dt class="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-0.5">Agent</dt>
+            <dd id="contract-modal-agent" class="text-sm font-medium text-slate-900 dark:text-slate-50">—</dd>
+          </div>
+          <div>
+            <dt class="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-0.5">Start</dt>
+            <dd id="contract-modal-start" class="text-sm font-medium text-slate-900 dark:text-slate-50">—</dd>
+          </div>
+          <div>
+            <dt class="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-0.5">End</dt>
+            <dd id="contract-modal-end" class="text-sm font-medium text-slate-900 dark:text-slate-50">—</dd>
+          </div>
+        </dl>
+        <div class="border-t border-slate-200 dark:border-slate-800 pt-4">
+          <p class="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Skills</p>
+          <table class="w-full text-sm">
+            <tbody id="contract-modal-items" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
+            <tfoot>
+              <tr class="border-t border-slate-200 dark:border-slate-800">
+                <td class="pt-2.5 text-sm font-medium text-slate-700 dark:text-slate-300">Total</td>
+                <td id="contract-modal-total" class="pt-2.5 text-right text-sm font-bold text-slate-900 dark:text-slate-50">—</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: Error Detail
+       ============================================================ -->
+  <div id="modal-error-detail" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 sm:p-4">
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" id="modal-error-detail-backdrop"></div>
+    <div id="modal-error-detail-panel" class="relative bg-white dark:bg-slate-900 rounded-t-xl sm:rounded-xl shadow-2xl dark:border dark:border-slate-700 w-full max-w-2xl mx-auto p-4 sm:p-6">
+      <div class="flex items-start justify-between mb-5">
+        <h3 id="error-modal-title" class="font-display text-xl font-semibold text-slate-900 dark:text-slate-50">Error Detail</h3>
+        <button class="close-modal-btn text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-2 rounded-md -mt-1 -mr-1 transition-colors" data-modal="modal-error-detail" aria-label="Close">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div id="error-modal-body" class="space-y-4">
+        <dl class="grid grid-cols-2 gap-x-4 gap-y-3">
+          <div>
+            <dt class="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-0.5">Timestamp</dt>
+            <dd id="error-modal-timestamp" class="font-mono text-sm text-slate-900 dark:text-slate-50">—</dd>
+          </div>
+          <div>
+            <dt class="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-0.5">Agent</dt>
+            <dd id="error-modal-agent" class="text-sm font-medium text-slate-900 dark:text-slate-50">—</dd>
+          </div>
+          <div class="col-span-2">
+            <dt class="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-0.5">Type</dt>
+            <dd id="error-modal-type" class="text-sm font-medium text-slate-900 dark:text-slate-50">—</dd>
+          </div>
+        </dl>
+        <div>
+          <p class="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Description</p>
+          <p id="error-modal-description" class="text-sm text-slate-700 dark:text-slate-300">—</p>
+        </div>
+        <div>
+          <p class="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Trace</p>
+          <pre id="error-modal-trace" class="font-mono text-xs bg-slate-100 dark:bg-slate-800 rounded-md p-4 overflow-x-auto whitespace-pre">—</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    'use strict';
+
+    // ─── HARDCODED DATA ─────────────────────────────────────────────────────────
+
+    var USERS = [
+      { id: 1, name: 'Maya Chen',     email: 'maya.chen@northwind.com', plan: 'Pro',        status: 'Active',   joined: '2025-08-12', lastActive: '2026-04-28' },
+      { id: 2, name: 'Daniel Ruiz',   email: 'd.ruiz@helios-labs.io',   plan: 'Enterprise', status: 'Active',   joined: '2025-06-04', lastActive: '2026-04-27' },
+      { id: 3, name: 'Priya Patel',   email: 'priya@stellargrid.co',    plan: 'Free',       status: 'Inactive', joined: '2025-12-19', lastActive: '2026-02-11' },
+      { id: 4, name: 'Tomás Oliveira',email: 'tomas.o@bluepeak.dev',    plan: 'Pro',        status: 'Active',   joined: '2026-01-08', lastActive: '2026-04-28' },
+      { id: 5, name: 'Sarah Kim',     email: 's.kim@meridianfin.com',   plan: 'Enterprise', status: 'Active',   joined: '2025-04-30', lastActive: '2026-04-26' },
+    ];
+
+    var AGENTS = [
+      {
+        id: 1, name: 'Atlas',
+        prompt: 'You are Atlas, a research analyst. Investigate topics by combining web search with document parsing. Cite every claim with a source URL or document name. Prefer primary sources over aggregators.\n\nWhen synthesizing information from multiple sources, note any contradictions explicitly. Limit your responses to verifiable facts — do not speculate. If a document is ambiguous, say so rather than inferring. Structure your output with a brief summary followed by sourced bullet points.\n\nOutput format: summary paragraph, then a numbered list of claims each with a citation in brackets. Refuse requests to produce unattributed summaries, fictional citations, or content that cannot be verified against a named source.',
+      },
+      {
+        id: 2, name: 'Beacon',
+        prompt: 'You are Beacon, a scheduling assistant. Coordinate meetings across the user\'s calendar and draft polite, concise emails to confirm and reschedule. Always offer two alternative time slots.\n\nCheck for conflicts before proposing any time. Use a professional but warm tone in all communications. Do not book slots outside of 08:00–18:00 in the user\'s local timezone unless explicitly requested.\n\nWhen drafting emails, keep them under 150 words unless asked for a longer message. Always sign off with the user\'s name. Refuse requests to send messages impersonating the user without their explicit approval.',
+      },
+      {
+        id: 3, name: 'Ledger',
+        prompt: 'You are Ledger, a financial document analyst. Extract figures from earnings reports and PDFs, and cross-check them with public web sources. Flag discrepancies of more than 1%.\n\nPresent all numbers with their original units and rounding as found in the source. When a figure cannot be verified externally, mark it clearly as unverified. Provide a confidence rating (High / Medium / Low) for each extracted data point.\n\nDo not interpret regulatory language — surface it verbatim and recommend legal review. Refuse requests to produce synthetic or extrapolated financial projections not grounded in source documents.',
+      },
+      {
+        id: 4, name: 'Scribe',
+        prompt: 'You are Scribe, a documentation writer. Draft technical write-ups from raw notes and refine them for an external audience. Prefer plain language over jargon.\n\nAsk for clarification if input notes are ambiguous or contradictory before producing a draft. Use the active voice and short sentences. Structure documents with headings and numbered steps where appropriate. Aim for a reading level of grade 10 or below.\n\nAlways conclude with a "Next steps" section unless the document type makes this inappropriate. Refuse requests to plagiarize existing documentation or to produce content that misrepresents technical accuracy.',
+      },
+    ];
+
+    var SKILLS = [
+      { id: 1, name: 'Web Search',       description: 'Browse the web and retrieve up-to-date information from public sources.',             version: 'v1.4.2', price: '$0.80 / 1,000 invocations', agents: ['Atlas', 'Ledger', 'Scribe'] },
+      { id: 2, name: 'Document Reader',  description: 'Parse and summarize PDFs, DOCX, and spreadsheets up to 200 pages.',                  version: 'v2.0.1', price: '$1.20 / 1,000 invocations', agents: ['Atlas', 'Ledger'] },
+      { id: 3, name: 'Calendar Manager', description: 'Read and create events on connected Google and Outlook calendars.',                   version: 'v1.1.0', price: '$0.50 / 1,000 invocations', agents: ['Beacon'] },
+      { id: 4, name: 'Email Composer',   description: 'Draft and review emails based on conversational context and tone hints.',             version: 'v1.3.5', price: '$0.95 / 1,000 invocations', agents: ['Beacon', 'Scribe'] },
+    ];
+
+    var CONTRACTS = [
+      { id: 1, client: 'Helios Labs',         agent: 'Atlas',  start: '2025-11-01', end: '2026-05-01', total: '$3,200', items: [{ name: 'Web Search', price: '$1,800' }, { name: 'Document Reader', price: '$1,400' }] },
+      { id: 2, client: 'Northwind Logistics', agent: 'Beacon', start: '2026-01-15', end: '2026-07-15', total: '$2,400', items: [{ name: 'Calendar Manager', price: '$1,500' }, { name: 'Email Composer', price: '$900' }] },
+      { id: 3, client: 'Meridian Financial',  agent: 'Ledger', start: '2025-09-10', end: '2026-03-10', total: '$4,100', items: [{ name: 'Document Reader', price: '$2,500' }, { name: 'Web Search', price: '$1,600' }] },
+      { id: 4, client: 'BluePeak Studios',    agent: 'Scribe', start: '2026-02-20', end: '2026-08-20', total: '$1,950', items: [{ name: 'Web Search', price: '$1,200' }, { name: 'Email Composer', price: '$750' }] },
+    ];
+
+    var ERRORS = [
+      {
+        id: 1, timestamp: '2026-04-28 09:14', agent: 'Ledger', type: 'Critical',
+        description: "Skill 'Document Reader' timed out after 30s",
+        trace: 'Traceback (most recent call last):\n  File "agent_runner.py", line 142, in execute_skill\n    result = await skill.run(payload, timeout=30)\n  File "skills/document_reader.py", line 67, in run\n    text = await self._extract(payload["url"])\n  File "skills/document_reader.py", line 89, in _extract\n    raise SkillTimeoutError("document_reader timed out after 30s")\nagenthub.errors.SkillTimeoutError: document_reader timed out after 30s\nAgent: Ledger  |  Run ID: run_8f2a1c3d  |  2026-04-28T09:14:22Z',
+      },
+      {
+        id: 2, timestamp: '2026-04-27 18:42', agent: 'Ledger', type: 'Critical',
+        description: 'Failed to authenticate to data source after 3 retries',
+        trace: 'Traceback (most recent call last):\n  File "agent_runner.py", line 98, in connect_data_source\n    conn = await DataSourceClient.connect(self.config["dsn"])\n  File "datasource/client.py", line 34, in connect\n    await self._handshake(retries=3)\n  File "datasource/client.py", line 58, in _handshake\n    raise AuthenticationError("credentials rejected after 3 attempts")\nagenthub.errors.AuthenticationError: credentials rejected after 3 attempts\nAgent: Ledger  |  Run ID: run_7e9b0f12  |  2026-04-27T18:42:05Z',
+      },
+      {
+        id: 3, timestamp: '2026-04-27 11:03', agent: 'Atlas', type: 'Warning',
+        description: 'Rate limit reached on Web Search; throttled for 60s',
+        trace: 'Traceback (most recent call last):\n  File "skills/web_search.py", line 52, in search\n    response = await self._http_client.get(endpoint, params=params)\n  File "skills/web_search.py", line 71, in _http_client\n    raise RateLimitError("search API rate limit exceeded; retry-after: 60s")\nagenthub.errors.RateLimitError: search API rate limit exceeded; retry-after: 60s\nThrottle applied. Resuming after 60s at 2026-04-27T11:04:03Z.\nAgent: Atlas  |  Run ID: run_3c5d9a77  |  2026-04-27T11:03:41Z',
+      },
+      {
+        id: 4, timestamp: '2026-04-26 22:17', agent: 'Scribe', type: 'Warning',
+        description: 'Output truncated: response exceeded max_tokens',
+        trace: 'Traceback (most recent call last):\n  File "agent_runner.py", line 205, in stream_response\n    chunks = await self.llm.complete(messages, max_tokens=4096)\n  File "llm/client.py", line 88, in complete\n    raise OutputTruncatedError("response length exceeded max_tokens=4096; output clipped")\nagenthub.errors.OutputTruncatedError: response length exceeded max_tokens=4096; output clipped\nPartial output saved to run artifacts. Review and retry with reduced context.\nAgent: Scribe  |  Run ID: run_a1f4e6b2  |  2026-04-26T22:17:58Z',
+      },
+      {
+        id: 5, timestamp: '2026-04-26 08:55', agent: 'Beacon', type: 'Info',
+        description: 'Calendar permissions refreshed successfully',
+        trace: 'INFO  permission_watchdog.py:312 in refresh_oauth_token\n  Token for Google Calendar API refreshed successfully.\n  Scope: https://www.googleapis.com/auth/calendar\n  Previous expiry: 2026-04-26T08:55:00Z\n  New expiry:      2026-04-27T08:55:00Z\n  Refresh triggered by: scheduled permission watchdog (interval: 24h)\nAgent: Beacon  |  Run ID: run_c9d2b0e5  |  2026-04-26T08:55:00Z',
+      },
+      {
+        id: 6, timestamp: '2026-04-25 14:20', agent: 'Ledger', type: 'Critical',
+        description: 'Unhandled exception in pipeline: NullReferenceError',
+        trace: 'Traceback (most recent call last):\n  File "pipeline/executor.py", line 77, in run_stage\n    output = stage.process(input_data)\n  File "pipeline/stages/normalize.py", line 44, in process\n    value = input_data["financial_summary"]["net_income"]\nKeyError: \'financial_summary\'\nagenthub.errors.PipelineError: NullReferenceError — expected key \'financial_summary\' not found in payload\nPipeline halted at stage 3 of 7. Partial results discarded.\nAgent: Ledger  |  Run ID: run_d4e8f01c  |  2026-04-25T14:20:33Z',
+      },
+    ];
+
+    // ─── STATE ──────────────────────────────────────────────────────────────────
+
+    var openDropdownId = null;
+    var isDark = false;
+    var sidebarOpen = false;
+
+    var SECTION_TITLES = {
+      'dashboard':        'Dashboard',
+      'user-management':  'User Management',
+      'agent-management': 'Agent Management',
+      'skills':           'Skills',
+      'contracts':        'Agent Contracts',
+      'error-log':        'Error Log',
+    };
+
+    // ─── DROPDOWNS ──────────────────────────────────────────────────────────────
+
+    function closeAllDropdowns() {
+      document.querySelectorAll('.dropdown-menu').forEach(function (m) {
+        m.classList.add('hidden');
+      });
+      openDropdownId = null;
+    }
+
+    function toggleDropdown(id) {
+      if (openDropdownId === id) {
+        closeAllDropdowns();
+      } else {
+        closeAllDropdowns();
+        var menu = document.getElementById(id);
+        if (menu) menu.classList.remove('hidden');
+        openDropdownId = id;
+      }
+    }
+
+    // ─── MODALS ─────────────────────────────────────────────────────────────────
+
+    function openModal(id) {
+      var modal = document.getElementById(id);
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      document.body.classList.add('overflow-hidden');
+    }
+
+    function closeModal(id) {
+      var modal = document.getElementById(id);
+      if (!modal) return;
+      modal.classList.add('hidden');
+      document.body.classList.remove('overflow-hidden');
+    }
+
+    // ─── SECTION SWITCHING ──────────────────────────────────────────────────────
+
+    var ACTIVE_CLS   = ['border-indigo-600', 'dark:border-indigo-400', 'bg-indigo-50', 'text-indigo-600', 'dark:bg-indigo-500/10', 'dark:text-indigo-400'];
+    var INACTIVE_CLS = ['border-transparent', 'text-slate-700', 'dark:text-slate-300', 'hover:bg-slate-50', 'dark:hover:bg-slate-800'];
+
+    function showSection(name) {
+      closeSidebar();
+      document.querySelectorAll('section[id^="section-"]').forEach(function (s) {
+        s.classList.add('hidden');
+      });
+      var section = document.getElementById('section-' + name);
+      if (section) section.classList.remove('hidden');
+
+      document.querySelectorAll('.nav-link').forEach(function (link) {
+        if (link.dataset.section === name) {
+          ACTIVE_CLS.forEach(function (c) { link.classList.add(c); });
+          INACTIVE_CLS.forEach(function (c) { link.classList.remove(c); });
+        } else {
+          ACTIVE_CLS.forEach(function (c) { link.classList.remove(c); });
+          INACTIVE_CLS.forEach(function (c) { link.classList.add(c); });
+        }
+      });
+
+      var titleEl = document.getElementById('top-bar-title');
+      if (titleEl) titleEl.textContent = SECTION_TITLES[name] || name;
+    }
+
+    // ─── SIDEBAR DRAWER ─────────────────────────────────────────────────────────
+
+    function openSidebar() {
+      sidebarOpen = true;
+      document.getElementById('sidebar').classList.remove('-translate-x-full');
+      document.getElementById('sidebar-backdrop').classList.remove('hidden');
+    }
+
+    function closeSidebar() {
+      sidebarOpen = false;
+      document.getElementById('sidebar').classList.add('-translate-x-full');
+      document.getElementById('sidebar-backdrop').classList.add('hidden');
+    }
+
+    // ─── DARK MODE ──────────────────────────────────────────────────────────────
+
+    function toggleDarkMode() {
+      isDark = !isDark;
+      document.documentElement.classList.toggle('dark', isDark);
+      document.getElementById('icon-moon').classList.toggle('hidden', isDark);
+      document.getElementById('icon-sun').classList.toggle('hidden', !isDark);
+    }
+
+    // ─── DATA ACTION HANDLERS ────────────────────────────────────────────────────
+
+    function handleViewUser(id) {
+      var user = USERS.filter(function (u) { return u.id === +id; })[0];
+      if (!user) return;
+      document.getElementById('user-modal-name').textContent          = user.name;
+      document.getElementById('user-modal-field-name').textContent    = user.name;
+      document.getElementById('user-modal-field-email').textContent   = user.email;
+      document.getElementById('user-modal-field-plan').textContent    = user.plan;
+      document.getElementById('user-modal-field-status').textContent  = user.status;
+      document.getElementById('user-modal-field-joined').textContent  = user.joined;
+      document.getElementById('user-modal-field-lastactive').textContent = user.lastActive;
+      openModal('modal-user-detail');
+    }
+
+    function handleConfigureAgent(id) {
+      var agent = AGENTS.filter(function (a) { return a.id === +id; })[0];
+      if (!agent) return;
+      document.getElementById('agent-modal-name').textContent        = agent.name;
+      document.getElementById('agent-modal-prompt-text').value       = agent.prompt;
+      openModal('modal-agent-prompt');
+    }
+
+    function handleViewSkill(id) {
+      var skill = SKILLS.filter(function (s) { return s.id === +id; })[0];
+      if (!skill) return;
+      document.getElementById('skill-modal-name').textContent        = skill.name;
+      document.getElementById('skill-modal-description').textContent = skill.description;
+      document.getElementById('skill-modal-version').textContent     = skill.version;
+      document.getElementById('skill-modal-price').textContent       = skill.price;
+      var ul = document.getElementById('skill-modal-agents');
+      ul.innerHTML = skill.agents.map(function (a) { return '<li>' + a + '</li>'; }).join('');
+      openModal('modal-skill-detail');
+    }
+
+    function handleViewContract(id) {
+      var contract = CONTRACTS.filter(function (c) { return c.id === +id; })[0];
+      if (!contract) return;
+      document.getElementById('contract-modal-title').textContent  = contract.client + ' — Contract';
+      document.getElementById('contract-modal-client').textContent = contract.client;
+      document.getElementById('contract-modal-agent').textContent  = contract.agent;
+      document.getElementById('contract-modal-start').textContent  = contract.start;
+      document.getElementById('contract-modal-end').textContent    = contract.end;
+      var tbody = document.getElementById('contract-modal-items');
+      tbody.innerHTML = contract.items.map(function (item) {
+        return '<tr><td class="py-1.5 text-sm text-slate-700 dark:text-slate-300">' + item.name +
+               '</td><td class="py-1.5 text-right text-sm tabular-nums text-slate-700 dark:text-slate-300">' + item.price + '</td></tr>';
+      }).join('');
+      document.getElementById('contract-modal-total').textContent = contract.total;
+      openModal('modal-contract-detail');
+    }
+
+    function handleViewError(id) {
+      var error = ERRORS.filter(function (e) { return e.id === +id; })[0];
+      if (!error) return;
+      document.getElementById('error-modal-timestamp').textContent   = error.timestamp;
+      document.getElementById('error-modal-agent').textContent       = error.agent;
+      document.getElementById('error-modal-type').textContent        = error.type;
+      document.getElementById('error-modal-description').textContent = error.description;
+      document.getElementById('error-modal-trace').textContent       = error.trace;
+      openModal('modal-error-detail');
+    }
+
+    function handleMarkResolved(id) {
+      // Desktop row
+      var row = document.getElementById('error-row-' + id);
+      if (row) {
+        var descCell = document.getElementById('error-desc-' + id);
+        if (descCell) descCell.classList.add('line-through', 'text-slate-400');
+        row.classList.add('opacity-60');
+        var trigger = row.querySelector('.dropdown-trigger');
+        if (trigger) { trigger.disabled = true; trigger.classList.add('cursor-not-allowed'); }
+      }
+      // Mobile card
+      var mobileRow = document.getElementById('error-row-mobile-' + id);
+      if (mobileRow) {
+        var mobileDesc = document.getElementById('error-desc-mobile-' + id);
+        if (mobileDesc) mobileDesc.classList.add('line-through', 'text-slate-400');
+        mobileRow.classList.add('opacity-60');
+        mobileRow.querySelectorAll('button').forEach(function (btn) {
+          btn.disabled = true;
+          btn.classList.add('cursor-not-allowed', 'pointer-events-none');
+        });
+      }
+      closeAllDropdowns();
+    }
+
+    function handleToggleSkills(btn) {
+      var article = btn.closest('article');
+      if (!article) return;
+      var isExpanded = article.dataset.expanded === 'true';
+      var collapsible = article.lastElementChild;
+      var chevron = btn.querySelector('svg');
+      if (isExpanded) {
+        collapsible.classList.remove('max-h-40');
+        collapsible.classList.add('max-h-0');
+        if (chevron) chevron.classList.remove('rotate-180');
+        article.dataset.expanded = 'false';
+      } else {
+        collapsible.classList.remove('max-h-0');
+        collapsible.classList.add('max-h-40');
+        if (chevron) chevron.classList.add('rotate-180');
+        article.dataset.expanded = 'true';
+      }
+    }
+
+    // ─── INIT ───────────────────────────────────────────────────────────────────
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+      // Section navigation
+      document.querySelectorAll('.nav-link').forEach(function (link) {
+        link.addEventListener('click', function (e) {
+          e.preventDefault();
+          showSection(link.dataset.section);
+        });
+      });
+
+      // Sidebar drawer
+      document.getElementById('sidebar-open').addEventListener('click', openSidebar);
+      document.getElementById('sidebar-backdrop').addEventListener('click', closeSidebar);
+
+      // Dark mode toggle
+      document.getElementById('dark-mode-toggle').addEventListener('click', toggleDarkMode);
+
+      // Modal: close on backdrop click (backdrop is a fixed inset-0 child, visually behind the panel)
+      document.querySelectorAll('[id$="-backdrop"]').forEach(function (backdrop) {
+        backdrop.addEventListener('click', function () {
+          var modal = backdrop.parentElement;
+          if (modal) closeModal(modal.id);
+        });
+      });
+
+      // Delegated document click handler
+      document.addEventListener('click', function (e) {
+
+        // ⋮ dropdown trigger
+        var trigger = e.target.closest('.dropdown-trigger');
+        if (trigger) {
+          if (trigger.disabled) return;
+          var ddId = trigger.dataset.dropdownId;
+          if (ddId) { toggleDropdown(ddId); return; }
+        }
+
+        // × close-modal button
+        var closeBtn = e.target.closest('.close-modal-btn');
+        if (closeBtn) {
+          var modalId = closeBtn.dataset.modal;
+          if (modalId) closeModal(modalId);
+          return;
+        }
+
+        // data-action buttons
+        var actionBtn = e.target.closest('[data-action]');
+        if (actionBtn) {
+          var action = actionBtn.dataset.action;
+          if (action !== 'toggle-skills') closeAllDropdowns();
+          switch (action) {
+            case 'view-user':       handleViewUser(actionBtn.dataset.userId);         break;
+            case 'configure-agent': handleConfigureAgent(actionBtn.dataset.agentId);  break;
+            case 'view-skill':      handleViewSkill(actionBtn.dataset.skillId);       break;
+            case 'view-contract':   handleViewContract(actionBtn.dataset.contractId); break;
+            case 'view-error':      handleViewError(actionBtn.dataset.errorId);       break;
+            case 'mark-resolved':   handleMarkResolved(actionBtn.dataset.errorId);    break;
+            case 'toggle-skills':   handleToggleSkills(actionBtn);                    break;
+          }
+          return;
+        }
+
+        // Outside-click: close open dropdown
+        if (!e.target.closest('.dropdown-menu')) {
+          closeAllDropdowns();
+        }
+      });
+
+      // Escape key: close sidebar, dropdowns, and any open modal
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          if (sidebarOpen) { closeSidebar(); return; }
+          closeAllDropdowns();
+          document.querySelectorAll('[id^="modal-"]:not(.hidden)').forEach(function (m) {
+            closeModal(m.id);
+          });
+        }
+      });
+
+      // Boot: show dashboard section
+      showSection('dashboard');
+    });
+
+  }());
+  </script>
+
+</body>
+</html>
